@@ -6,11 +6,15 @@ import argparse
 from tkinter import Tk
 from os.path import splitext, split
 from tkinter.filedialog import asksaveasfilename
+import unicodedata
 
 def complete(stream, filepath):
     path, _ = splitext(filepath)
     dir, filename = split(path)
-    caption.download(title=filename, output_path=dir)
+    if caption:
+        caption.download(title=filename, output_path=dir)
+    else:
+        print('\nNo caption available')
     print('\nDownloaded successfully')
 
 def choose_path(defaultTitle):
@@ -23,8 +27,7 @@ def choose_path(defaultTitle):
         initialfile = defaultTitle,
         confirmoverwrite = True
     )
-    path, extenstion = splitext(fullpath)
-    dir, filename = split(path)
+    dir, filename = split(fullpath)
     if not filename:
         sys.exit('Cancelled')
 
@@ -47,7 +50,10 @@ def main():
         stream = yt.streams.filter(progressive=True).get_highest_resolution()
         global caption
         defaultTitle = stream.title
-        caption = yt.captions[args.code]
+        special_char = [x for x in defaultTitle if unicodedata.category(x)[0] not in 'LN' and x not in '_-()[]! ']
+        for c in special_char:
+            defaultTitle = defaultTitle.replace(c, '')
+        caption = yt.captions.get(args.code)
     except PytubeError:
         sys.exit('Invalid URL')
 
@@ -56,7 +62,7 @@ def main():
         download(stream, dir, filename)
     if args.opt == 2:
         dir = choose_dir()
-        download(stream, dir, defaultTitle)
+        download(stream, dir, defaultTitle+'.mp4')
 
 if __name__=='__main__':
     Tk().withdraw()

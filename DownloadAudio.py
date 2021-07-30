@@ -7,6 +7,7 @@ from tkinter.filedialog import askdirectory, asksaveasfilename
 from tkinter import Tk
 import subprocess
 import argparse
+import unicodedata
 
 def progress_update(stream, chunk, bytes_remaining):
     printProgressBar(stream.filesize - bytes_remaining, stream.filesize)
@@ -43,7 +44,7 @@ def choose_path(defaultTitle):
     if not filename:
         sys.exit('Cancelled')
 
-    return dir, filename
+    return dir, filename+'.mp4'
 
 def choose_dir():
     print('Choose directory')
@@ -61,6 +62,9 @@ def initialize(url):
         )
         stream = yt.streams.get_audio_only()
         defaultTitle = stream.title
+        special_char = [x for x in defaultTitle if unicodedata.category(x)[0] not in 'LN' and x not in '_-()[]! ']
+        for c in special_char:
+            defaultTitle = defaultTitle.replace(c, '')
         return stream, defaultTitle
     except PytubeError:
         sys.exit('Invalid URL')
@@ -77,7 +81,7 @@ def main():
         download(stream, dir, filename)
     if args.opt == 2:
         dir = choose_dir()
-        download(stream, dir, defaultTitle)
+        download(stream, dir, defaultTitle+'.mp4')
 
 if __name__=='__main__':
     Tk().withdraw()

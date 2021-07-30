@@ -1,12 +1,12 @@
 from pytube import YouTube
 from pytube.exceptions import PytubeError
 import sys
-from os.path import split, splitext
-from pytube.request import stream
+from os.path import split
 from progressBar import *
 from tkinter.filedialog import askdirectory, asksaveasfilename
 from tkinter import Tk
 import argparse
+import unicodedata
 
 def progress_update(stream, chunk, bytes_remaining):
     printProgressBar(stream.filesize - bytes_remaining, stream.filesize)
@@ -27,8 +27,8 @@ def choose_path(defaultTitle):
         initialfile = defaultTitle,
         confirmoverwrite = True
     )
-    path, extenstion = splitext(fullpath)
-    dir, filename = split(path)
+
+    dir, filename = split(fullpath)
     if not filename:
         sys.exit('Cancelled')
 
@@ -50,6 +50,9 @@ def initialize(url):
         )
         stream = yt.streams.filter(progressive=True).get_highest_resolution()
         defaultTitle = stream.title
+        special_char = [x for x in defaultTitle if unicodedata.category(x)[0] not in 'LN' and x not in '_-()[]! ']
+        for c in special_char:
+            defaultTitle = defaultTitle.replace(c, '')
         return stream, defaultTitle
     except PytubeError:
         sys.exit('Invalid URL')
@@ -67,7 +70,7 @@ def main():
         download(stream, dir, filename)
     if args.opt == 2:
         dir = choose_dir()
-        download(stream, dir, defaultTitle)
+        download(stream, dir, defaultTitle+'.mp4')
 
 if __name__=='__main__':
     Tk().withdraw()

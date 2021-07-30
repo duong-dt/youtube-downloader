@@ -84,24 +84,20 @@ set _askURL="D:\python\youtube_downloader\askURL.py"
     goto:get_url
 
 :download:
-    if %main_opt% equ 4 %_python% %_bulk_audio% %_url% & goto:notify
-    if %main_opt% equ 5 %_python% %_bulk_video% %_url% & goto:notify
+    if %main_opt% equ 4 %_python% %_bulk_audio% %_url% & goto:continue_stop
+    if %main_opt% equ 5 %_python% %_bulk_video% %_url% & goto:continue_stop
     choice /c 012 /n
     if %errorlevel% equ 1 goto:continue_stop
     if %errorlevel% equ 2 (
-        if %main_opt% equ 1 %_python% %_audio% %_url% 1 & goto:notify
-        if %main_opt% equ 2 %_python% %_video% %_url% 1 & goto:notify
-        if %main_opt% equ 3 %_python% %_video_caption% %_url% %_code% 1 & goto:notify
+        if %main_opt% equ 1 %_python% %_audio% %_url% 1 & goto:continue_stop
+        if %main_opt% equ 2 %_python% %_video% %_url% 1 & goto:continue_stop
+        if %main_opt% equ 3 %_python% %_video_caption% %_url% %_code% 1 & goto:continue_stop
     )
     if %errorlevel% equ 3 (
-        if %main_opt% equ 1 %_python% %_audio% %_url% 2 & goto:notify
-        if %main_opt% equ 2 %_python% %_video% %_url% 2 & goto:notify
-        if %main_opt% equ 3 %_python% %_video_caption% %_url% %_code% 2 & goto:notify
+        if %main_opt% equ 1 %_python% %_audio% %_url% 2 & goto:continue_stop
+        if %main_opt% equ 2 %_python% %_video% %_url% 2 & goto:continue_stop
+        if %main_opt% equ 3 %_python% %_video_caption% %_url% %_code% 2 & goto:continue_stop
     )
-
-:notify:
-    %_python% %_notify% %_url%
-    goto:continue_stop
 
 :continue_stop:
     echo.
