@@ -1,7 +1,8 @@
 from pytube import YouTube
 from pytube.exceptions import PytubeError
+from urllib.error import URLError
 import sys
-from os.path import split
+from os.path import split, isfile, join as pjoin
 from progressBar import *
 from tkinter.filedialog import askdirectory, asksaveasfilename
 from tkinter import Tk
@@ -41,7 +42,10 @@ def choose_dir():
         sys.exit('Cancelled')
     return path
 
+global attempt
+attempt = 1
 def initialize(url):
+    global attempt
     try:
         yt = YouTube(
             url = url,
@@ -53,7 +57,14 @@ def initialize(url):
         special_char = [x for x in defaultTitle if unicodedata.category(x)[0] not in 'LN' and x not in '_-()[]! ']
         for c in special_char:
             defaultTitle = defaultTitle.replace(c, '')
-        return stream, defaultTitle
+        return stream, defaultTitle + '.mp4'
+    except URLError:
+        if attempt < 4:
+            print('\nConnection Error !!! Trying again ... ')
+            attempt += 1
+            return initialize(url)
+        else:
+            sys.exit('Cannot connect to Youtube !!!')
     except PytubeError:
         sys.exit('Invalid URL')
 
@@ -70,7 +81,10 @@ def main():
         download(stream, dir, filename)
     if args.opt == 2:
         dir = choose_dir()
-        download(stream, dir, defaultTitle+'.mp4')
+        if isfile(pjoin(dir, defaultTitle)):
+            print('Skip existing file')
+            return
+        download(stream, dir, defaultTitle)
 
 if __name__=='__main__':
     Tk().withdraw()
