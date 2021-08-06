@@ -1,6 +1,7 @@
 @echo off
 color 09
-mode con: cols=135 lines=30
+mode con: cols=140 lines=35
+powershell.exe -ExecutionPolicy Bypass -Command "&{$H=get-host;$W=$H.ui.rawui;$B=$W.buffersize;$B.width=140;$B.height=250;$W.buffersize=$B;}"
 set _python="C:\Users\Do Tung Duong\AppData\Local\Programs\Python\Python38\python.exe"
 set _audio="D:\python\youtube_downloader\DownloadAudio.py"
 set _video="D:\python\youtube_downloader\DownloadVideo.py"

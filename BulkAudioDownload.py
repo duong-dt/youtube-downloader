@@ -6,19 +6,34 @@ from pytube import Playlist
 from pytube.exceptions import PytubeError
 from tkinter import Tk
 from DownloadAudio import choose_dir
+from os.path import join as pjoin, isfile
+from urllib.error import URLError
 
+global _ATTEMP
+_ATTEMP = 1
 def initialize(url):
+    global _ATTEMP
     try:
         playlist = Playlist(url)
         return playlist.video_urls
+    except URLError:
+        if _ATTEMP < 4:
+            print('Connection Error !!! Trying again ... ')
+            _ATTEMP += 1
+            return initialize(url)
+        else:
+            sys.exit('Connection ERROR !!!')
     except PytubeError:
         sys.exit('Invalid URL')
 
 def download(videos, dir):
     for video in videos:
         stream, defaultTitle = init_one(video)
-        print(f'Downloading {defaultTitle}')
-        download_one(stream, dir, defaultTitle)
+        if isfile(pjoin(dir, defaultTitle.replace('.mp4', '.mp3'))):
+            print('\nSkip existing file')
+        else:
+            print(f'\nDownloading {defaultTitle}')
+            download_one(stream, dir, defaultTitle)
 
 def main():
     parser = argparse.ArgumentParser(prog='Youtube Audio Downloader')
