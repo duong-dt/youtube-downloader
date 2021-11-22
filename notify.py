@@ -12,7 +12,7 @@ if __name__=='__main__':
     toaster.show_toast(
         title = 'Youtube Downloader',
         msg = f'Finished download from {args.url}',
-        icon_path = 'Guillendesign-Variations-2-Script-Console.ico',
-        duration = 5,
+        icon_path = 'terminix.ico',
+        duration = 3,
         threaded=True
     )

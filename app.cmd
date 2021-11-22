@@ -2,14 +2,24 @@
 color 09
 mode con: cols=140 lines=35
 powershell.exe -ExecutionPolicy Bypass -Command "&{$H=get-host;$W=$H.ui.rawui;$B=$W.buffersize;$B.width=140;$B.height=250;$W.buffersize=$B;}"
-set _python="C:\Users\Do Tung Duong\AppData\Local\Programs\Python\Python38\python.exe"
-set _audio="D:\python\youtube_downloader\DownloadAudio.py"
-set _video="D:\python\youtube_downloader\DownloadVideo.py"
-set _video_caption="D:\python\youtube_downloader\DownloadVideoWithCaption.py"
-set _bulk_audio="D:\python\youtube_downloader\BulkAudioDownload.py"
-set _bulk_video="D:\python\youtube_downloader\BulkVideoDownload.py"
-set _notify="D:\python\youtube_downloader\notify.py"
-set _askURL="D:\python\youtube_downloader\askURL.py"
+
+@REM set _python="C:\Users\Do Tung Duong\AppData\Local\Programs\Python\Python38\python.exe"
+@REM set _audio="D:\python\youtube_downloader\DownloadAudio.py"
+@REM set _video="D:\python\youtube_downloader\DownloadVideo.py"
+@REM set _video_caption="D:\python\youtube_downloader\DownloadVideoWithCaption.py"
+@REM set _bulk_audio="D:\python\youtube_downloader\BulkAudioDownload.py"
+@REM set _bulk_video="D:\python\youtube_downloader\BulkVideoDownload.py"
+@REM set _notify="D:\python\youtube_downloader\notify.py"
+@REM set _askURL="D:\python\youtube_downloader\askURL.py"
+
+set _python=".venv\Scripts\python.exe"
+set _audio=".\DownloadAudio.py"
+set _video=".\DownloadVideo.py"
+set _video_caption=".\DownloadVideoWithCaption.py"
+set _bulk_audio=".\BulkAudioDownload.py"
+set _bulk_video=".\BulkVideoDownload.py"
+set _notify=".\notify.py"
+set _askURL=".\askURL.py"
 
 :mainapp:
     cls
