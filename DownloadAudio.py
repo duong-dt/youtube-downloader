@@ -37,7 +37,7 @@ def choose_path(defaultTitle):
             ('Audio Format', '.mp3')
         ],
         defaultextension = '.*',
-        initialfile = defaultTitle,
+        initialfile = splitext(defaultTitle)[0],
         confirmoverwrite = True
     )
     path, extenstion = splitext(fullpath)
