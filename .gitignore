@@ -1,2 +1,3 @@
-.venv/
-activate/
+venv/
+.idea/
+__pycache__/

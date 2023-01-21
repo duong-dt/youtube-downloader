@@ -1,49 +1,51 @@
 import sys
 from DownloadAudio import initialize as init_one
-from DownloadAudio import download as download_one
 import argparse
 from pytube import Playlist
 from pytube.exceptions import PytubeError
-from tkinter import Tk
-from DownloadAudio import choose_dir
+from util import choose_dir, download as download_one
 from os.path import join as pjoin, isfile
 from urllib.error import URLError
 
-global _ATTEMP
-_ATTEMP = 1
+global _ATTEMPTS
+_ATTEMPTS = 1
+
+
 def initialize(url):
-    global _ATTEMP
+    global _ATTEMPTS
     try:
         playlist = Playlist(url)
         return playlist.video_urls
     except URLError:
-        if _ATTEMP < 4:
+        if _ATTEMPTS < 4:
             print('Connection Error !!! Trying again ... ')
-            _ATTEMP += 1
+            _ATTEMPTS += 1
             return initialize(url)
         else:
             sys.exit('Connection ERROR !!!')
     except PytubeError:
         sys.exit('Invalid URL')
 
-def download(videos, dir):
+
+def download(videos, save_dir):
     for video in videos:
         stream, defaultTitle = init_one(video)
-        if isfile(pjoin(dir, defaultTitle.replace('.mp4', '.mp3'))):
-            print('\nSkip existing file')
+        if isfile(pjoin(save_dir, defaultTitle)):
+            print('\nSkip existing file ')
         else:
-            print(f'\nDownloading {defaultTitle}')
-            download_one(stream, dir, defaultTitle)
+            print(f'\nDownloading {defaultTitle} ')
+            download_one(stream, save_dir, defaultTitle)
 
-def main():
+
+def get_audios(url):
+    videos = initialize(url)
+    save_dir = choose_dir()
+    download(videos, save_dir)
+
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Youtube Audio Downloader')
-    parser.add_argument('url', type=str,help='url of youtube video')
+    parser.add_argument('url', type=str, help='url of youtube video')
 
     args = parser.parse_args()
-    videos = initialize(args.url)
-    dir = choose_dir()
-    download(videos, dir)
-
-if __name__=='__main__':
-    Tk().withdraw()
-    main()
+    get_audios(args.url)

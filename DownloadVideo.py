@@ -1,56 +1,22 @@
 from pytube import YouTube
 from pytube.exceptions import PytubeError
 from urllib.error import URLError
-import sys
 from os.path import split, isfile, join as pjoin
-from progressBar import *
-from tkinter.filedialog import askdirectory, asksaveasfilename
-from tkinter import Tk
+from util import *
 import argparse
 import unicodedata
 
-def progress_update(stream, chunk, bytes_remaining):
-    printProgressBar(stream.filesize - bytes_remaining, stream.filesize)
+global _ATTEMPTS
+_ATTEMPTS = 1
 
-def complete(stream, filepath):
-    print('\nDownloaded successfully')
 
-def download(stream, dir, filename):
-    stream.download(filename=filename, output_path=dir)
-
-def choose_path(defaultTitle):
-    print('Choose directory and file name')
-    fullpath = asksaveasfilename(
-        filetypes = [
-            ('Video Format', '.mp4')
-        ],
-        defaultextension = '.*',
-        initialfile = defaultTitle,
-        confirmoverwrite = True
-    )
-
-    dir, filename = split(fullpath)
-    if not filename:
-        sys.exit('Cancelled')
-
-    return dir, filename
-
-def choose_dir():
-    print('Choose directory')
-    path = askdirectory()
-    if not path:
-        sys.exit('Cancelled')
-    return path
-
-global attempt
-attempt = 1
 def initialize(url):
-    global attempt
+    global _ATTEMPTS
     try:
         yt = YouTube(
-            url = url,
-            on_complete_callback = complete,
-            on_progress_callback = progress_update
+            url=url,
+            on_complete_callback=complete,
+            on_progress_callback=progress_update
         )
         stream = yt.streams.filter(progressive=True).get_highest_resolution()
         defaultTitle = stream.title
@@ -59,33 +25,37 @@ def initialize(url):
             defaultTitle = defaultTitle.replace(c, '')
         return stream, defaultTitle + '.mp4'
     except URLError:
-        if attempt < 4:
+        if _ATTEMPTS < 4:
             print('\nConnection Error !!! Trying again ... ')
-            attempt += 1
+            _ATTEMPTS += 1
             return initialize(url)
         else:
             sys.exit('Cannot connect to Youtube !!!')
     except PytubeError:
         sys.exit('Invalid URL')
 
-def main():
+
+def get_video(url, opt=None):
+    stream, defaultTitle = initialize(url)
+    if opt is None:
+        opt = askLoc_or_Path()
+    if opt == 1:
+        save_dir, filename = choose_path(defaultTitle)
+        print(f'Downloading {defaultTitle} - {stream.resolution} ')
+        download(stream, save_dir, filename)
+    if opt == 2:
+        save_dir = choose_dir()
+        if isfile(pjoin(save_dir, defaultTitle)):
+            print('Skip existing file')
+            return
+        print(f'Downloading {defaultTitle} - {stream.resolution} ')
+        download(stream, save_dir, defaultTitle)
+
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Youtube Audio Downloader')
-    parser.add_argument('url', type=str,help='url of youtube video')
+    parser.add_argument('url', type=str, help='url of youtube video')
     parser.add_argument('opt', type=int, choices=[1, 2], help='1. Choose directory and filename\n2. Choose directory')
 
     args = parser.parse_args()
-    stream, defaultTitle = initialize(args.url)
-
-    if args.opt == 1:
-        dir, filename = choose_path(defaultTitle)
-        download(stream, dir, filename)
-    if args.opt == 2:
-        dir = choose_dir()
-        if isfile(pjoin(dir, defaultTitle)):
-            print('Skip existing file')
-            return
-        download(stream, dir, defaultTitle)
-
-if __name__=='__main__':
-    Tk().withdraw()
-    main()
+    get_video(args.url, args.opt)

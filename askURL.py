@@ -1,6 +1,21 @@
-from win32com.client import Dispatch
+import pyperclip
+from urllib.parse import urlparse
+from easygui import enterbox
+import sys
 
-print('Enter Youtube URL (wrap in double quote): ', end='')
-wsh=Dispatch('WScript.Shell')
-wsh.sendKeys('""{LEFT}')
-wsh.sendKeys('^v')
+
+def askURL():
+    if not pyperclip.is_available():
+        txt = pyperclip.paste()
+    else:
+        txt = ''
+    url = enterbox(
+        title='',
+        msg='Enter Youtube URL',
+        strip=True,
+        default=txt if urlparse(txt).netloc.endswith('youtube.com') else ''
+    )
+    if url is None:
+        sys.exit('Cancelled')
+    return url
+
