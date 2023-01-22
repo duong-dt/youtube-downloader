@@ -49,7 +49,7 @@
     pip install -r requirements.txt
     ```
    
-   * In Window
+   * In Linux
    ```commandline
    pip3 install -r requirements.txt
    ```
