@@ -26,7 +26,7 @@
    
 2. Download repo or clone
     ```commandline
-    git clone https://github.com/github-duongdt/youtube-downloader.git
+    git clone https://github.com/duong-dt/youtube-downloader.git
     ```
 
 3. Create & activate _**python virtual environment**_
