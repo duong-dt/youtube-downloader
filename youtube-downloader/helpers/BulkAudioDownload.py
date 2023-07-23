@@ -1,9 +1,9 @@
 import sys
-from DownloadAudio import initialize as init_one
+from .DownloadAudio import initialize as init_one
 import argparse
 from pytube import Playlist
 from pytube.exceptions import PytubeError
-from util import choose_dir, download as download_one
+from .util import choose_dir, download as download_one
 from os.path import join as pjoin, isfile
 from urllib.error import URLError
 

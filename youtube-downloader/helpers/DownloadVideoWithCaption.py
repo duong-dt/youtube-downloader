@@ -1,6 +1,6 @@
 import math
 import time
-from util import choose_dir, choose_path, progress_update, download, complete, askLoc_or_Path
+from .util import choose_dir, choose_path, progress_update, download, complete, askLoc_or_Path
 from pytube import YouTube
 from pytube.exceptions import PytubeError
 from urllib.error import URLError
