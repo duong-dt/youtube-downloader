@@ -13,56 +13,25 @@
 1. PyPI packages
    * easygui
    * pyperclip
-   * pytube
+   * pytubefix
 2. Apt packages (for Linux)
    * python3-tk
    * python3-venv
 
 # Installation via CLI
-1. Install dependencies (for Linux)
-   ```commandline
-   sudo apt-get install python3-venv python3-tk
-   ```
-   
-2. Download repo or clone
+1. Download repo or clone
     ```commandline
     git clone https://github.com/duong-dt/youtube-downloader.git
     ```
 
-3. Create & activate _**python virtual environment**_
-   * In Window
-    ```commandline
-    cd youtube-downloader
-    python -m venv venv
-   .\venv\Scripts\activate
-    ```
-    * In Linux
-    ```commandline
-    cd youtube-downloader
-    python3 -m venv venv
-    source ./venv/bin/activate
-    ```
-
-4. Install PyPI dependencies
-   * In Window
-    ```commandline
-    pip install -r requirements.txt
-    ```
-   
-   * In Linux
+2. Setup environment
    ```commandline
-   pip3 install -r requirements.txt
+   setup.sh
    ```
 
-5. Launch application
-   * In Window
+3. Run application
    ```commandline
-   python app.py
-   ```
-   
-   * In Linux
-   ```commandline
-   python3 app.py
+   start.sh
    ```
 
 # CLI Application
@@ -81,13 +50,4 @@
 
 ## Step 3. Choose directory or full path (directory + filename)
 
-## If PyTube failed to connect to YouTube, it may need to be upgraded to the newest version
-   * In Window
-   ```commandline
-   pip install --upgrade pytube
-   ```
-
-   * In Linux
-   ```commandline
-   pip3 install --upgrade pytube
-   ```
+Note: If PyTubeFix failed to connect to YouTube, it may need to be upgraded to the newest version (re-run setup.sh)
