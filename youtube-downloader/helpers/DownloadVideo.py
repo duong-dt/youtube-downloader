@@ -1,5 +1,5 @@
-from pytube import YouTube
-from pytube.exceptions import PytubeError
+from pytubefix import YouTube
+from pytubefix.exceptions import PytubeFixError as PytubeError
 from urllib.error import URLError
 from os.path import split, isfile, join as pjoin
 from .util import *
@@ -31,8 +31,8 @@ def initialize(url):
             return initialize(url)
         else:
             sys.exit('Cannot connect to Youtube !!!')
-    except PytubeError:
-        sys.exit('Invalid URL')
+    except PytubeError as err:
+        _error(err)
 
 
 def get_video(url, opt=None):

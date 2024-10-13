@@ -89,3 +89,8 @@ def askLoc_or_Path():
     opt = int(opt[0])
     return opt
 
+
+def _error(_exception):
+    print(f"{type(_exception).__name__} : {_exception}")
+    sys.exit(1)
+

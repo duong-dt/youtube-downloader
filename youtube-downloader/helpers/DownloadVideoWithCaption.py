@@ -1,8 +1,8 @@
 import math
 import time
 from .util import choose_dir, choose_path, progress_update, download, complete, askLoc_or_Path
-from pytube import YouTube
-from pytube.exceptions import PytubeError
+from pytubefix import YouTube
+from pytubefix.exceptions import PytubeFixError as PytubeError
 from urllib.error import URLError
 import sys
 import argparse
@@ -50,8 +50,8 @@ def initialize(url):
             return initialize(url)
         else:
             sys.exit('Cannot connect to Youtube !!!')
-    except PytubeError:
-        sys.exit('Invalid URL')
+    except PytubeError as err:
+        _error(err)
 
 
 def float_to_srt_time_format(d: float) -> str:

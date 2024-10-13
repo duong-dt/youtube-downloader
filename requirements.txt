@@ -1,3 +1,3 @@
 easygui>=0.98.3
 pyperclip>=1.8.2
-pytube>=12.1.2
+pytubefix
