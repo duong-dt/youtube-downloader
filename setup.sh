@@ -9,6 +9,9 @@ cd $(dirname $0)
 # Install dependencies
 sudo -k apt install python3-tk python3-venv
 
+# Remove old env if exist
+rm -rf ./venv/
+
 # Create and activate python virtual environment
 echo "Creating python environment"
 python3 -m venv venv
