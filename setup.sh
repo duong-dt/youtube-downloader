@@ -1,27 +1,26 @@
 #!/bin/bash
 
 # Get current working directory
-old_dir=$(pwd -P)
+#old_dir=$(pwd -P)
 
 # Change to directory of script
-cd $(dirname $0)
+#cd $(dirname $0)
 
 # Install dependencies
 sudo -k apt install python3-tk python3-venv
+pip3 install virtualenvwrapper
+source $(which virtualenvwrapper.sh)
 
-# Remove old env if exist
-rm -rf ./venv/
-
-# Create and activate python virtual environment
+# Create python virtual environment and install dependencies
 echo "Creating python environment"
-python3 -m venv venv
-source ./venv/bin/activate
+mkvirtualenv --clear -r $(dirname $0)/requirements.txt youtube-downloader
 
-# Install python packages
-python3 -m pip install -r requirements.txt
+# Create youtube-downloader script in ~/.local/bin/
+echo $'#!/bin/bash\nsource $(which virtualenvwrapper.sh)\nworkon youtube-downloader' > $HOME/.local/bin/youtube-downloader
+echo "python3 $(dirname $0)/youtube-downloader" >> $HOME/.local/bin/youtube-downloader
+echo 'deactivate' >> $HOME/.local/bin/youtube-downloader
+chmod +x $HOME/.local/bin/youtube-downloader 
 
-# Deactivate python virtual environment 
-deactivate
 
 # Change to old directory
-cd $old_dir
+#cd $old_dirt

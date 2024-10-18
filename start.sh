@@ -1,19 +1,10 @@
 #!/bin/bash
 
-# Get current working directory
-old_dir=$(pwd -P)
+source $(which virtualenvwrapper.sh)
 
-# Change to directory of script
-cd $(dirname $0)
+workon youtube-downloader
 
-# Activate Python Virtual Environment
-source ./venv/bin/activate
+python3 $(dirname $0)/youtube-downloader
 
-# Run the application
-python3 youtube-downloader
-
-# Deactivate Python Virtual Environment
 deactivate
 
-# Change to old directory
-cd $old_dir
