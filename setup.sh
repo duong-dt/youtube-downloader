@@ -13,13 +13,13 @@ source $(which virtualenvwrapper.sh)
 
 # Create python virtual environment and install dependencies
 echo "Creating python environment"
-mkvirtualenv --clear -r $(dirname $0)/requirements.txt youtube-downloader
+mkvirtualenv --clear -r $(dirname $(realpath "$0"))/requirements.txt youtube-downloader
 
 # Create youtube-downloader script in ~/.local/bin/
 echo $'#!/bin/bash\nsource $(which virtualenvwrapper.sh)\nworkon youtube-downloader' > $HOME/.local/bin/youtube-downloader
-echo "python3 $(dirname $0)/youtube-downloader" >> $HOME/.local/bin/youtube-downloader
+echo "python3 $(dirname $(realpath "$0"))/youtube-downloader" >> $HOME/.local/bin/youtube-downloader
 echo 'deactivate' >> $HOME/.local/bin/youtube-downloader
-chmod +x $HOME/.local/bin/youtube-downloader 
+chmod +x $HOME/.local/bin/youtube-downloader
 
 
 # Change to old directory
