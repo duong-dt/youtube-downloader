@@ -1,12 +1,12 @@
 import math
 import time
-from .util import choose_dir, choose_path, progress_update, download, complete, askLoc_or_Path
+from .util import choose_dir, choose_path, progress_update, download, \
+                    complete, askLoc_or_Path, _error
 from pytubefix import YouTube
 from pytubefix.exceptions import PytubeFixError as PytubeError
 from urllib.error import URLError
 import sys
-import argparse
-from os.path import splitext, split, join as pjoin
+from os.path import splitext, join as pjoin
 import unicodedata
 from easygui import multchoicebox
 from html import unescape
@@ -19,14 +19,15 @@ _ATTEMPTS = 1
 def initialize(url):
     global _ATTEMPTS
     try:
-        yt = YouTube(
-            url=url,
-            on_complete_callback=complete,
-            on_progress_callback=progress_update
-        )
+        yt = YouTube(url=url,
+                     on_complete_callback=complete,
+                     on_progress_callback=progress_update)
         stream = yt.streams.filter(progressive=True).get_highest_resolution()
         defaultTitle = stream.title
-        special_char = [x for x in defaultTitle if unicodedata.category(x)[0] not in 'LN' and x not in '_-()[]! ']
+        special_char = [
+            x for x in defaultTitle
+            if unicodedata.category(x)[0] not in 'LN' and x not in '_-()[]! '
+        ]
         for c in special_char:
             defaultTitle = defaultTitle.replace(c, '')
         captions = []
@@ -34,9 +35,9 @@ def initialize(url):
             caption_choices = multchoicebox(
                 'Select captions to download',
                 choices=[
-                    f"{code} ---- {yt.captions[code].name}" for code in yt.captions.lang_code_index.keys()
-                ]
-            )
+                    f"{code} ---- {yt.captions[code].name}"
+                    for code in yt.captions.lang_code_index.keys()
+                ])
             for choice in caption_choices:
                 code = choice.split('----', 1)[0].strip()
                 captions.append(yt.captions.get(code))
@@ -124,10 +125,12 @@ def get_video_srt(url, opt=None):
             try:
                 cap.generate_srt_captions()
             except Exception:
-                with open(pjoin(save_dir, get_srt_name(filename, cap.code)), 'w') as file_handle:
+                with open(pjoin(save_dir, get_srt_name(filename, cap.code)),
+                          'w') as file_handle:
                     file_handle.write(xml_to_srt(cap.xml_captions))
             else:
-                cap.download(title=filename.replace('.mp4', '.srt'), output_path=save_dir)
+                cap.download(title=filename.replace('.mp4', '.srt'),
+                             output_path=save_dir)
             print(f'Successfully downloaded {cap.code} ')
 
     if opt == 2:
@@ -139,7 +142,9 @@ def get_video_srt(url, opt=None):
             try:
                 cap.generate_srt_captions()
             except Exception:
-                with open(pjoin(save_dir, get_srt_name(defaultTitle, cap.code)), 'w') as file_handle:
+                with open(
+                        pjoin(save_dir, get_srt_name(defaultTitle, cap.code)),
+                        'w') as file_handle:
                     file_handle.write(xml_to_srt(cap.xml_captions))
             else:
                 cap.download(title=defaultTitle, output_path=save_dir)
@@ -147,9 +152,4 @@ def get_video_srt(url, opt=None):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='Youtube Audio Downloader')
-    parser.add_argument('url', type=str, help='url of youtube video')
-    parser.add_argument('opt', type=int, choices=[1, 2], help='1. Choose directory and filename\n2. Choose directory')
-
-    args = parser.parse_args()
-    get_video_srt(args.url, args.opt)
+    pass

@@ -1,7 +1,6 @@
 import sys
 from .DownloadVideo import initialize as init_one
-from .util import download as download_one, choose_dir
-import argparse
+from .util import download as download_one, choose_dir, _error
 from pytubefix import Playlist
 from pytubefix.exceptions import PytubeFixError as PytubeError
 from os.path import isfile, join as pjoin
@@ -44,8 +43,4 @@ def get_videos(url):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='Youtube Audio Downloader')
-    parser.add_argument('url', type=str, help='url of youtube video')
-
-    args = parser.parse_args()
-    get_videos(args.url)
+    pass

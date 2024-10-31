@@ -1,5 +1,6 @@
-from easygui import *
-from helpers import *
+from easygui import choicebox, ccbox
+from helpers import askURL, get_audios, get_audio, get_video, get_videos, \
+                    get_video_srt
 
 main_opts = [
     '1. Download audio only (mp3)',
@@ -12,12 +13,10 @@ main_opts = [
 
 def main():
     while True:
-        choice = choicebox(
-            title='Youtube Downloader',
-            msg='Choose application options',
-            choices=main_opts,
-            preselect=1
-        )
+        choice = choicebox(title='Youtube Downloader',
+                           msg='Choose application options',
+                           choices=main_opts,
+                           preselect=1)
         if choice is None:
             break
         choice = main_opts.index(choice) + 1

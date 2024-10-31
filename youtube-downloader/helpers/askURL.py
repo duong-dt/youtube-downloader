@@ -13,9 +13,7 @@ def askURL():
         title='',
         msg='Enter Youtube URL',
         strip=True,
-        default=txt if urlparse(txt).netloc.endswith('youtube.com') else ''
-    )
+        default=txt if urlparse(txt).netloc.endswith('youtube.com') else '')
     if url is None:
         sys.exit('Cancelled')
     return url
-

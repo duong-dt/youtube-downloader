@@ -1,11 +1,11 @@
 from pytubefix import YouTube
 from pytubefix.exceptions import PytubeFixError as PytubeError
 from urllib.error import URLError
-from os.path import split, splitext, isfile, join as pjoin
-from .util import *
-import argparse
+from os.path import isfile, join as pjoin
+from .util import _error, complete, progress_update, choose_path, choose_dir, \
+                    download, askLoc_or_Path
 import unicodedata
-
+import sys
 
 global _ATTEMPTS
 _ATTEMPTS = 1
@@ -14,14 +14,15 @@ _ATTEMPTS = 1
 def initialize(url):
     global _ATTEMPTS
     try:
-        yt = YouTube(
-            url=url,
-            on_complete_callback=complete,
-            on_progress_callback=progress_update
-        )
+        yt = YouTube(url=url,
+                     on_complete_callback=complete,
+                     on_progress_callback=progress_update)
         stream = yt.streams.get_audio_only()
         defaultTitle = stream.title
-        special_char = [x for x in defaultTitle if unicodedata.category(x)[0] not in 'LN' and x not in '_-()[]! ']
+        special_char = [
+            x for x in defaultTitle
+            if unicodedata.category(x)[0] not in 'LN' and x not in '_-()[]! '
+        ]
         for c in special_char:
             defaultTitle = defaultTitle.replace(c, '')
         return stream, defaultTitle + '.mp3'
@@ -52,9 +53,4 @@ def get_audio(url, opt=None):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='Youtube Audio Downloader')
-    parser.add_argument('url', type=str, help='url of youtube video')
-    parser.add_argument('opt', type=int, choices=[1, 2], help='1. Choose directory and filename\n2. Choose directory')
-
-    args = parser.parse_args()
-    get_audio(args.url, args.opt)
+    pass
