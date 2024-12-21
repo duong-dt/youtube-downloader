@@ -2,7 +2,13 @@ from pytubefix import YouTube, Stream
 from pytubefix.exceptions import PytubeFixError as PytubeError
 from urllib.error import URLError
 from pathlib import Path
-from .util import _error, complete, progress_update, download
+from .util import (
+    _error,
+    complete,
+    progress_update,
+    download,
+    progress,
+)
 import unicodedata
 
 global _ATTEMPTS
@@ -39,8 +45,16 @@ def initialize(url: str) -> tuple[Stream, str]:
 
 
 def get_video(url: str, save_dir: Path):
+    id = progress.custom_add_task(
+        title=url, description="Downloading", start=False
+    )
     stream, defaultTitle = initialize(url)
-    print(f"Downloading {defaultTitle} - {stream.resolution} ")
+    progress.start_task(id)
+    progress.update(
+        id, description=defaultTitle, total=stream.filesize, completed=0
+    )
+    progress.update_mapping(stream.title, id)
+    # print(f"Downloading {defaultTitle} - {stream.resolution} ")
     download(stream, save_dir, defaultTitle)
 
 

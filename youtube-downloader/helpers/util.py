@@ -1,7 +1,6 @@
 from pathlib import Path
 import sys
 from pytubefix import Stream
-from pytubefix.cli import on_progress
 from rich.progress import (
     Progress,
     TaskID,

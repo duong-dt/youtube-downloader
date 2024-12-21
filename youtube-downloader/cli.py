@@ -8,6 +8,7 @@ from helpers import (
     get_video,
     get_videos,
     get_video_srt,
+    progress,
 )
 
 
@@ -55,16 +56,17 @@ def main():
 
     save_dir = Path(answers.get("loc"))
 
-    if answers.get("opt").startswith("1."):
-        get_audio(answers.get("url"), save_dir)
-    if answers.get("opt").startswith("2."):
-        get_video(answers.get("url"), save_dir)
-    if answers.get("opt").startswith("3."):
-        get_video_srt(answers.get("url"), save_dir)
-    if answers.get("opt").startswith("4."):
-        get_audios(answers.get("url"), save_dir)
-    if answers.get("opt").startswith("5."):
-        get_videos(answers.get("url"), save_dir)
+    with progress:
+        if answers.get("opt").startswith("1."):
+            get_audio(answers.get("url"), save_dir)
+        if answers.get("opt").startswith("2."):
+            get_video(answers.get("url"), save_dir)
+        if answers.get("opt").startswith("3."):
+            get_video_srt(answers.get("url"), save_dir)
+        if answers.get("opt").startswith("4."):
+            get_audios(answers.get("url"), save_dir)
+        if answers.get("opt").startswith("5."):
+            get_videos(answers.get("url"), save_dir)
 
 
 if __name__ == "__main__":
