@@ -7,7 +7,7 @@
 #cd $(dirname $0)
 
 # Install dependencies
-sudo -k apt install python3-tk python3-venv
+sudo -k apt install python3-venv
 pip3 install virtualenvwrapper
 source $(which virtualenvwrapper.sh)
 

@@ -1,19 +1,19 @@
-# from tkinter.filedialog import askdirectory, asksaveasfilename
-# from tkinter import Tk
-from easygui import filesavebox, choicebox, diropenbox
-from os.path import split
+from pathlib import Path
 import sys
+from pytubefix import Stream
 
 
 # Print iterations progress
-def printProgressBar(iteration,
-                     total,
-                     prefix='',
-                     suffix='',
-                     decimals=1,
-                     length=100,
-                     fill='█',
-                     printEnd="\r"):
+def printProgressBar(
+    iteration,
+    total,
+    prefix="",
+    suffix="",
+    decimals=1,
+    length=100,
+    fill="█",
+    printEnd="\r",
+):
     """
     Call in a loop to create terminal progress bar
     @params:
@@ -27,70 +27,26 @@ def printProgressBar(iteration,
         printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
     """
     percent = ("{0:." + str(decimals) + "f}").format(
-        100 * (iteration / float(total)))
+        100 * (iteration / float(total))
+    )
     filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=printEnd)
+    bar = fill * filledLength + "-" * (length - filledLength)
+    print(f"\r{prefix} |{bar}| {percent}% {suffix}", end=printEnd)
 
 
-def progress_update(stream, chunk, bytes_remaining):
+def progress_update(stream: Stream, chunk: int, bytes_remaining: int):
     printProgressBar(stream.filesize - bytes_remaining, stream.filesize)
 
 
-def complete(stream, filepath):
-    filename = split(filepath)[-1]
-    print(f'\nSuccessfully downloaded {filename} ')
+def complete(stream: Stream, filepath: str):
+    filename = Path(filepath).name
+    print(f"\nSuccessfully downloaded {filename} ")
 
 
-def download(stream, save_dir, filename):
+def download(stream: Stream, save_dir: Path, filename: str):
     stream.download(filename=filename, output_path=save_dir)
 
 
-def choose_path(defaultTitle):
-    print('Choose directory and file name')
-    # fullpath = asksaveasfilename(
-    #     filetypes=[
-    #         ('Video Format', '.mp4')
-    #     ],
-    #     defaultextension='.*',
-    #     initialfile=defaultTitle,
-    #     confirmoverwrite=True
-    # )
-    fullpath = filesavebox(msg='Select file location',
-                           title='Save as',
-                           filetypes=['*.mp4', '*.mp3'],
-                           default=defaultTitle)
-
-    if not fullpath:
-        sys.exit('Cancelled')
-    else:
-        save_dir, filename = split(fullpath)
-        if not filename:
-            sys.exit('Cancelled')
-        return save_dir, filename
-
-
-def choose_dir():
-    print('Choose directory')
-    # path = askdirectory()
-    path = diropenbox(title='Save in', msg='Select save location')
-    if not path:
-        sys.exit('Cancelled')
-    return path
-
-
-def askLoc_or_Path():
-    opt = choicebox(msg='Select save option',
-                    choices=[
-                        '1. Select file location and name',
-                        '2. Select file location'
-                    ])
-    if opt is None:
-        sys.exit('Cancelled')
-    opt = int(opt[0])
-    return opt
-
-
-def _error(_exception):
+def _error(_exception: Exception):
     print(f"{type(_exception).__name__} : {_exception}")
     sys.exit(1)

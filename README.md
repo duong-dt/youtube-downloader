@@ -11,11 +11,9 @@
 
 # Dependencies
 1. PyPI packages
-   * easygui
    * pyperclip
    * pytubefix
-2. Apt packages (for Linux)
-   * python3-tk
+2. Linux Packages
    * python3-venv
 
 # Installation via CLI
@@ -31,12 +29,14 @@
 
 3. Run application
    ```commandline
-   start.sh
+   youtube-downloader
    ```
 
 # CLI Application
 
-## Step 1. Choose options
+## Step 1. Enter YouTube video URL (auto-detect from clipboard)
+
+## Step 2. Choose options
 
 ### Available options:
 
@@ -46,8 +46,6 @@
 4. Bulk download audios from playlist
 5. Bulk download videos from playlist
 
-## Step 2. Enter YouTube video URL (auto-detect from clipboard)
-
-## Step 3. Choose directory or full path (directory + filename)
+## Step 3. Choose a directory to save file(s)
 
 Note: If PyTubeFix failed to connect to YouTube, it may need to be upgraded to the newest version (re-run setup.sh)
