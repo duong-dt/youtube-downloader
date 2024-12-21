@@ -1,3 +1,4 @@
 pyperclip>=1.8.2
 pytubefix
 questionary
+rich
