@@ -3,6 +3,8 @@ from .util import (
     download,
     complete,
     _error,
+    progress,
+    progress2,
 )
 from pytubefix import YouTube, Stream, Caption
 from pytubefix.exceptions import PytubeFixError as PytubeError
@@ -66,15 +68,25 @@ def get_srt_name(fname: str, code: str) -> str:
 
 def get_video_srt(url: str, save_dir: Path):
     stream, captions, defaultTitle = initialize(url)
-    print(f"Downloading {defaultTitle} - {stream.resolution}")
-    download(stream, save_dir, defaultTitle)
-    for cap in captions:
-        # print(f"Downloading subtitle {cap.name} ")
-        with open(
-            save_dir.joinpath(get_srt_name(defaultTitle, cap.code)), "w"
-        ) as file_handle:
-            file_handle.write(cap.generate_srt_captions())
-        print(f"Successfully downloaded {cap.name} caption")
+    with progress:
+        progress.custom_add_task(
+            title=stream.title, description=defaultTitle, total=stream.filesize
+        )
+        # print(f"Downloading {defaultTitle} - {stream.resolution}")
+        download(stream, save_dir, defaultTitle)
+
+    with progress2:
+        id = progress2.add_task(
+            "Downloading captions ... ", total=len(captions)
+        )
+        for cap in captions:
+            # print(f"Downloading subtitle {cap.name} ")
+            with open(
+                save_dir.joinpath(get_srt_name(defaultTitle, cap.code)), "w"
+            ) as file_handle:
+                file_handle.write(cap.generate_srt_captions())
+            progress2.update(id, advance=1)
+            print(f"Successfully downloaded {cap.name} caption")
 
 
 if __name__ == "__main__":

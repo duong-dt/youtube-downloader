@@ -81,6 +81,17 @@ progress: CustomProgress = CustomProgress(
     transient=True,
 )
 
+progress2: Progress = Progress(
+    SpinnerColumn(),
+    TextColumn(
+        "[progress.description]{task.description}",
+        table_column=Column(width=30, overflow="ellipsis", no_wrap=True),
+    ),
+    BarColumn(bar_width=50, style="red", complete_style="green"),
+    TaskProgressColumn(),
+    transient=True,
+)
+
 
 def progress_update(stream: Stream, chunk: bytes, bytes_remaining: int):
     global progress

@@ -45,17 +45,18 @@ def initialize(url: str) -> tuple[Stream, str]:
 
 
 def get_video(url: str, save_dir: Path):
-    id = progress.custom_add_task(
-        title=url, description="Downloading", start=False
-    )
-    stream, defaultTitle = initialize(url)
-    progress.start_task(id)
-    progress.update(
-        id, description=defaultTitle, total=stream.filesize, completed=0
-    )
-    progress.update_mapping(stream.title, id)
-    # print(f"Downloading {defaultTitle} - {stream.resolution} ")
-    download(stream, save_dir, defaultTitle)
+    with progress:
+        id = progress.custom_add_task(
+            title=url, description="Downloading", start=False
+        )
+        stream, defaultTitle = initialize(url)
+        progress.start_task(id)
+        progress.update(
+            id, description=defaultTitle, total=stream.filesize, completed=0
+        )
+        progress.update_mapping(stream.title, id)
+        # print(f"Downloading {defaultTitle} - {stream.resolution} ")
+        download(stream, save_dir, defaultTitle)
 
 
 if __name__ == "__main__":
