@@ -79,6 +79,7 @@ progress: CustomProgress = CustomProgress(
     TextColumn("/", style="green"),
     TotalFileSizeColumn(),
     transient=True,
+    refresh_per_second=100,
 )
 
 progress2: Progress = Progress(
@@ -90,6 +91,7 @@ progress2: Progress = Progress(
     BarColumn(bar_width=50, style="red", complete_style="green"),
     TaskProgressColumn(),
     transient=True,
+    refresh_per_second=100,
 )
 
 
@@ -102,7 +104,8 @@ def progress_update(stream: Stream, chunk: bytes, bytes_remaining: int):
 
 def complete(stream: Stream, filepath: str):
     filename = Path(filepath).name
-    print(f"\nSuccessfully downloaded {filename} ")
+    print(f"Successfully downloaded {filename} ")
+    progress.remove_task(progress.task_ids_mapping.get(stream.title))
 
 
 def download(stream: Stream, save_dir: Path, filename: str):
