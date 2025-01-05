@@ -53,6 +53,9 @@ def main():
         ),
     ).ask()
 
+    if not answers:
+        return
+
     save_dir = Path(answers.get("loc"))
 
     if answers.get("opt").startswith("1."):
