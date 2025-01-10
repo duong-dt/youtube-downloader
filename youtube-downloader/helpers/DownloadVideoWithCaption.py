@@ -36,7 +36,9 @@ def initialize(url: str) -> tuple[Stream, Iterable[Caption], str]:
         for c in special_char:
             defaultTitle = defaultTitle.replace(c, "")
         captions = []
-        if len(yt.captions) > 1:
+        if len(yt.captions) == 0:
+            print("No caption available")
+        elif len(yt.captions) > 1:
             caption_choices = questionary.checkbox(
                 message="Select captions to download",
                 choices=[
