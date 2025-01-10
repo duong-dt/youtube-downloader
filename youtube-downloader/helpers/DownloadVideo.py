@@ -8,8 +8,8 @@ from .util import (
     progress_update,
     download,
     progress,
+    getDefaultTitle,
 )
-import unicodedata
 
 global _ATTEMPTS
 _ATTEMPTS = 1
@@ -24,14 +24,8 @@ def initialize(url: str) -> tuple[Stream, str]:
             on_progress_callback=progress_update,
         )
         stream = yt.streams.filter(progressive=True).get_highest_resolution()
-        defaultTitle = stream.title
-        special_char = [
-            x
-            for x in defaultTitle
-            if unicodedata.category(x)[0] not in "LN" and x not in "_-()[]! "
-        ]
-        for c in special_char:
-            defaultTitle = defaultTitle.replace(c, "")
+        defaultTitle = getDefaultTitle(stream.title)
+
         return stream, defaultTitle + ".mp4"
     except URLError:
         if _ATTEMPTS < 4:

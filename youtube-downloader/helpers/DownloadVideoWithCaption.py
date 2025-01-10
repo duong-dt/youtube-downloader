@@ -5,12 +5,12 @@ from .util import (
     _error,
     progress,
     progress2,
+    getDefaultTitle,
 )
 from pytubefix import YouTube, Stream, Caption
 from pytubefix.exceptions import PytubeFixError as PytubeError
 from urllib.error import URLError
 from pathlib import Path
-import unicodedata
 import questionary
 from typing import Iterable
 
@@ -27,14 +27,8 @@ def initialize(url: str) -> tuple[Stream, Iterable[Caption], str]:
             on_progress_callback=progress_update,
         )
         stream = yt.streams.filter(progressive=True).get_highest_resolution()
-        defaultTitle = stream.title
-        special_char = [
-            x
-            for x in defaultTitle
-            if unicodedata.category(x)[0] not in "LN" and x not in "_-()[]! "
-        ]
-        for c in special_char:
-            defaultTitle = defaultTitle.replace(c, "")
+        defaultTitle = getDefaultTitle(stream.title)
+
         captions = []
         if len(yt.captions) == 0:
             print("No caption available")

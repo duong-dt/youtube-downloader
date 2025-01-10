@@ -2,8 +2,14 @@ from pytubefix import YouTube, Stream
 from pytubefix.exceptions import PytubeFixError as PytubeError
 from urllib.error import URLError
 from pathlib import Path
-from .util import _error, complete, progress_update, download, progress
-import unicodedata
+from .util import (
+    _error,
+    complete,
+    progress_update,
+    download,
+    progress,
+    getDefaultTitle,
+)
 
 global _ATTEMPTS
 _ATTEMPTS = 1
@@ -18,14 +24,8 @@ def initialize(url: str) -> tuple[Stream, str]:
             on_progress_callback=progress_update,
         )
         stream = yt.streams.get_audio_only()
-        defaultTitle = stream.title
-        special_char = [
-            x
-            for x in defaultTitle
-            if unicodedata.category(x)[0] not in "LN" and x not in "_-()[]! "
-        ]
-        for c in special_char:
-            defaultTitle = defaultTitle.replace(c, "")
+        defaultTitle = getDefaultTitle(stream.title)
+
         return stream, defaultTitle + ".mp3"
     except URLError:
         if _ATTEMPTS < 4:

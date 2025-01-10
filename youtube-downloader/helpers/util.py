@@ -13,6 +13,7 @@ from rich.progress import (
 )
 from rich.table import Column
 from typing import Any
+import unicodedata
 
 
 class CustomProgress(Progress):
@@ -115,3 +116,20 @@ def download(stream: Stream, save_dir: Path, filename: str):
 def _error(_exception: Exception):
     print(f"{type(_exception).__name__} : {_exception}")
     sys.exit(1)
+
+
+def getDefaultTitle(title: str) -> str:
+    """
+    Create safe file name by removing special character
+    from YouTube video title
+    """
+
+    special_char = [
+        x
+        for x in title
+        if unicodedata.category(x)[0] not in "LN" and x not in "_-()[]! "
+    ]
+    for c in special_char:
+        title.replace(c, "")
+
+    return title
