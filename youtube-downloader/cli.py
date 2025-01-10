@@ -28,12 +28,15 @@ main_opts = [
 
 
 def main():
+    # Get URL from clipboard if available
     if not pyperclip.is_available():
         txt = pyperclip.paste()
         if url_validate(txt) is not True:
             txt = ""
     else:
         txt = ""
+
+    # Get user inputs (URL, action, save location)
     answers = questionary.form(
         url=questionary.text(
             message="Enter YouTube URL:", default=txt, validate=url_validate
@@ -53,21 +56,23 @@ def main():
         ),
     ).ask()
 
+    # If user cancelled, stop executing
     if not answers:
         return
 
     save_dir = Path(answers.get("loc"))
+    url = answers.get("url")
 
-    if answers.get("opt").startswith("1."):
-        get_audio(answers.get("url"), save_dir)
-    if answers.get("opt").startswith("2."):
-        get_video(answers.get("url"), save_dir)
-    if answers.get("opt").startswith("3."):
-        get_video_srt(answers.get("url"), save_dir)
-    if answers.get("opt").startswith("4."):
-        get_audios(answers.get("url"), save_dir)
-    if answers.get("opt").startswith("5."):
-        get_videos(answers.get("url"), save_dir)
+    if answers.get("opt").startswith("1."):  # Download audio only
+        get_audio(url, save_dir)
+    if answers.get("opt").startswith("2."):  # Donwload video
+        get_video(url, save_dir)
+    if answers.get("opt").startswith("3."):  # Download video with subtitle
+        get_video_srt(url, save_dir)
+    if answers.get("opt").startswith("4."):  # Download audios from playlist
+        get_audios(url, save_dir)
+    if answers.get("opt").startswith("5."):  # Download videos from playlist
+        get_videos(url, save_dir)
 
 
 if __name__ == "__main__":
