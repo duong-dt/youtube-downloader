@@ -1,0 +1,26 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "youtube-downloader-cli"
+authors = [{ name = "duong", email = "dotungduong2@gmail.com" }]
+description = "CLI tool for download from YouTube"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+classifiers = ["License :: OSI Approved :: MIT License"]
+dynamic = ["version"]
+dependencies = ["pyperclip", "pytubefix", "questionary", "rich"]
+
+[project.urls]
+Home = "https://github.com/duong-dt/youtube-downloader"
+
+[project.scripts]
+youtube-downloader = "youtube_downloader.__main__:main"
+
+[project.optional-dependencies]
+dev = ["flit", "bump-my-version"]
+
+[tool.flit.module]
+name = "youtube_downloader"
