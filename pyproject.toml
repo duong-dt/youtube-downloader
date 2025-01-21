@@ -8,6 +8,7 @@ authors = [{ name = "duong", email = "dotungduong2@gmail.com" }]
 description = "CLI tool for download from YouTube"
 readme = "README.md"
 license = { file = "LICENSE" }
+requires-python = ">=3.10"
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version"]
 dependencies = ["pyperclip", "pytubefix", "questionary", "rich"]
@@ -19,7 +20,7 @@ Home = "https://github.com/duong-dt/youtube-downloader"
 youtube-downloader = "youtube_downloader.__main__:main"
 
 [project.optional-dependencies]
-deploy = ["flit", "bump-my-version"]
+dev = ["flit", "bump-my-version"]
 
 [tool.flit.module]
 name = "youtube_downloader"

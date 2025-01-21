@@ -9,25 +9,10 @@
    * Single video or All videos from a playlist
    * Download audio only track to .mp3 file
 
-# Dependencies
-1. PyPI packages
-   * pyperclip
-   * pytubefix
-
-# Installation via CLI
-1. Download repo or clone
-    ```commandline
-    git clone https://github.com/duong-dt/youtube-downloader.git
-    ```
-
-2. Setup environment
+# Installation
+1. Using `pip`
    ```commandline
-   setup.sh
-   ```
-
-3. Run application
-   ```commandline
-   youtube-downloader
+   pip install youtube-downloader-cli
    ```
 
 # CLI Application
@@ -47,3 +32,14 @@
 ## Step 3. Choose a directory to save file(s)
 
 Note: If PyTubeFix failed to connect to YouTube, it may need to be upgraded to the newest version (re-run setup.sh)
+
+# Dependencies
+1. For CLI Application
+   * pyperclip
+   * pytubefix
+   * questionary
+   * rich
+
+2. Extra-dependencies for development
+   * flit
+   * bump-my-version
