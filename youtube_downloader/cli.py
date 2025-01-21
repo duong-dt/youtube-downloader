@@ -2,16 +2,14 @@ import questionary
 from pathlib import Path
 from urllib.parse import urlparse
 import pyperclip
-from helpers import (
+from youtube_downloader.helpers import (
     get_audios,
     get_audio,
     get_video,
     get_videos,
     get_video_srt,
 )
-
-with Path(__file__).parent.joinpath("VERSION") as f:
-    __version = f.read_text()
+from youtube_downloader import __version__
 
 
 def url_validate(url: str) -> bool | str:
@@ -31,7 +29,7 @@ main_opts = [
 
 
 def main():
-    print(f"youtube-downloader version {__version}")
+    print(f"youtube-downloader version {__version__}")
 
     # Get URL from clipboard if available
     if not pyperclip.is_available():
