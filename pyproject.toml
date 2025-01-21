@@ -19,4 +19,4 @@ Home = "https://github.com/duong-dt/youtube-downloader"
 youtube-downloader = "youtube-downloader.__main__:main"
 
 [project.optional-dependencies]
-deploy = ["flit"]
+deploy = ["flit", "bump-my-version"]
