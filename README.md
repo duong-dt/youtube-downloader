@@ -39,7 +39,3 @@ Note: If PyTubeFix failed to connect to YouTube, it may need to be upgraded to t
    * pytubefix
    * questionary
    * rich
-
-2. Extra-dependencies for development
-   * flit
-   * bump-my-version

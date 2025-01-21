@@ -11,16 +11,18 @@ license = { file = "LICENSE" }
 requires-python = ">=3.10"
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version"]
-dependencies = ["pyperclip", "pytubefix", "questionary", "rich"]
+dependencies = [
+    "pyperclip==1.9.0",
+    "pytubefix>=8.12",
+    "questionary==2.1.0",
+    "rich>=13.9",
+]
 
 [project.urls]
 Home = "https://github.com/duong-dt/youtube-downloader"
 
 [project.scripts]
 youtube-downloader = "youtube_downloader.__main__:main"
-
-[project.optional-dependencies]
-dev = ["flit", "bump-my-version"]
 
 [tool.flit.module]
 name = "youtube_downloader"
