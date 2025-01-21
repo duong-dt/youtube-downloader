@@ -10,7 +10,7 @@ from helpers import (
     get_video_srt,
 )
 
-with Path(__file__).parent.parent.joinpath("VERSION") as f:
+with Path(__file__).parent.joinpath("VERSION") as f:
     __version = f.read_text()
 
 

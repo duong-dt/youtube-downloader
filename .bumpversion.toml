@@ -32,8 +32,11 @@ pre_commit_hooks = []
 post_commit_hooks = []
 
 [tool.bumpversion.parts.pre]
-values = ["dev", "final"]
+values = ["dev", "rc", "final"]
 optional_value = "final"
 
 [[tool.bumpversion.files]]
 filename = "VERSION"
+
+[[tool.bumpversion.files]]
+filename = "youtube_downloader/VERSION"

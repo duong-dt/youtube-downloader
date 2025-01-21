@@ -16,7 +16,7 @@ dependencies = ["pyperclip", "pytubefix", "questionary", "rich"]
 Home = "https://github.com/duong-dt/youtube-downloader"
 
 [project.scripts]
-youtube-downloader = "youtube-downloader.__main__:main"
+youtube-downloader = "youtube_downloader.__main__:main"
 
 [project.optional-dependencies]
 deploy = ["flit", "bump-my-version"]
