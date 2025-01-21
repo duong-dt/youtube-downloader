@@ -10,6 +10,9 @@ from helpers import (
     get_video_srt,
 )
 
+with Path(__file__).parent.parent.joinpath("VERSION") as f:
+    __version = f.read_text()
+
 
 def url_validate(url: str) -> bool | str:
     if urlparse(url).netloc.endswith("youtube.com") or (len(url) == 0):
@@ -28,6 +31,8 @@ main_opts = [
 
 
 def main():
+    print(f"youtube-downloader version {__version}")
+
     # Get URL from clipboard if available
     if not pyperclip.is_available():
         txt = pyperclip.paste()

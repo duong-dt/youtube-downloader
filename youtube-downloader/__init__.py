@@ -1,1 +1,6 @@
-__version__ = "1.0.0-alpha1"
+from pathlib import Path
+
+with Path(__file__).parent.parent.joinpath("VERSION") as f:
+    __version__ = f.read_text()
+
+__all__ = ["__version__"]
