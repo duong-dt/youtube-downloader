@@ -3,7 +3,7 @@ requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "youtube-downloader"
+name = "youtube-downloader-cli"
 authors = [{ name = "duong", email = "dotungduong2@gmail.com" }]
 description = "CLI tool for download from YouTube"
 readme = "README.md"
@@ -20,3 +20,6 @@ youtube-downloader = "youtube_downloader.__main__:main"
 
 [project.optional-dependencies]
 deploy = ["flit", "bump-my-version"]
+
+[tool.flit.module]
+name = "youtube_downloader"
