@@ -13,8 +13,6 @@
 1. PyPI packages
    * pyperclip
    * pytubefix
-2. Linux Packages
-   * python3-venv
 
 # Installation via CLI
 1. Download repo or clone
