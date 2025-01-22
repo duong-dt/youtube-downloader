@@ -24,5 +24,8 @@ Home = "https://github.com/duong-dt/youtube-downloader"
 [project.scripts]
 youtube-downloader = "youtube_downloader.__main__:main"
 
+[project.optional-dependencies]
+dev = ["black>=24.10.0", "flake8>=7.1.1"]
+
 [tool.flit.module]
 name = "youtube_downloader"
