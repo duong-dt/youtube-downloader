@@ -15,7 +15,7 @@ _ATTEMPTS = 1
 def initialize(url: str) -> Iterable[str]:
     global _ATTEMPTS
     try:
-        playlist = Playlist(url)
+        playlist = Playlist(url, client="WEB")
         return playlist.video_urls
     except URLError:
         if _ATTEMPTS < 4:
