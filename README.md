@@ -15,6 +15,11 @@
    pip install youtube-downloader-cli
    ```
 
+2. Using `uv`
+   ```commandline
+   uv tool install youtube-downloader-cli
+   ```
+
 # CLI Application
 
 ## Step 1. Enter YouTube video URL (auto-detect from clipboard)
@@ -31,7 +36,8 @@
 
 ## Step 3. Choose a directory to save file(s)
 
-Note: If PyTubeFix failed to connect to YouTube, it may need to be upgraded to the newest version (re-run setup.sh)
+Note: If PyTubeFix failed to connect to YouTube, it may need to be upgraded to the newest version.
+Using `pip`: `pip install --upgrade pytubefix`. Or using `uv`: `uv install youtube-downloader-cli --upgrade --reinstall`. 
 
 # Dependencies
 1. For CLI Application
