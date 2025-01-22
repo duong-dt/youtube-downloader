@@ -39,3 +39,6 @@ Note: If PyTubeFix failed to connect to YouTube, it may need to be upgraded to t
    * pytubefix
    * questionary
    * rich
+
+2. Of `pytubefix`
+   * NodeJS (make sure that NodeJS is available for POTOKEN generation from `pytubefix`)
