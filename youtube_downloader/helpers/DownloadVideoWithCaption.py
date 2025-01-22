@@ -23,6 +23,7 @@ def initialize(url: str) -> tuple[Stream, Iterable[Caption], str]:
     try:
         yt = YouTube(
             url=url,
+            client="WEB",
             on_complete_callback=complete,
             on_progress_callback=progress_update,
         )
