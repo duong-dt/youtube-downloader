@@ -1,6 +1,6 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "youtube-downloader-cli"
@@ -27,5 +27,8 @@ youtube-downloader = "youtube_downloader.__main__:main"
 [project.optional-dependencies]
 dev = ["black>=24.10.0", "flake8>=7.1.1"]
 
-[tool.flit.module]
-name = "youtube_downloader"
+[tool.setuptools.dynamic]
+version = { file = ["youtube_downloader/VERSION"] }
+
+[tool.setuptools.package-data]
+file = ["VERSION"]

@@ -1,5 +1,5 @@
 [tool.bumpversion]
-current_version = "0.1.1-dev3"
+current_version = "0.1.1-dev4"
 parse = """(?x)
     (?P<major>0|[1-9]\\d*)\\.
     (?P<minor>0|[1-9]\\d*)\\.
@@ -34,9 +34,6 @@ post_commit_hooks = []
 [tool.bumpversion.parts.pre_l]
 values = ["dev", "rc", "final"]
 optional_value = "final"
-
-[[tool.bumpversion.files]]
-filename = "VERSION"
 
 [[tool.bumpversion.files]]
 filename = "youtube_downloader/VERSION"
