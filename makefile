@@ -22,6 +22,13 @@ init: clean
 clean:
 	rm -rf dist/
 	rm -rf .venv/
+	rm -rf *.egg-info/
+
+upload: rebuild
+	twine upload -r pypi dist/*
+
+install:
+	uv tool install $(PACKAGE) -U --reinstall
 
 upload-test: rebuild
 	twine upload -r testpypi dist/*
