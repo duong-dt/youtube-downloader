@@ -132,8 +132,6 @@ def get_video_srt(url: str, save_dir: Path):
                 audio_stream, video_stream, save_dir, defaultTitle
             )
 
-            progress.remove_task(id)
-
     with progress2:
         id = progress2.add_task(
             "Downloading captions ... ", total=len(captions)

@@ -1,5 +1,14 @@
-from .DownloadVideo import initialize as init_one
-from .util import download as download_one, _error, progress
+from .DownloadVideo import (
+    initialize as init_one,
+    initialize_wffmpeg as init_one_ffmpeg,
+)
+from .util import (
+    download as download_one,
+    download_video_wffmpeg as download_one_ffmpeg,
+    _error,
+    progress,
+    check_ffmpeg,
+)
 from pytubefix import Playlist
 from pytubefix.exceptions import PytubeFixError as PytubeError
 from pathlib import Path
@@ -38,14 +47,41 @@ def download(videos: Iterable[str], save_dir: Path):
                     description=defaultTitle,
                     total=stream.filesize,
                 )
-                # print(f"\nDownloading {defaultTitle} ")
+
                 pool.submit(download_one, stream, save_dir, defaultTitle)
-                # download_one(stream, save_dir, defaultTitle)
+
+
+def download_wffmpeg(videos: Iterable[str], save_dir: Path):
+    with progress:
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            for video in videos:
+                audio_stream, video_stream, defaultTitle = init_one_ffmpeg(
+                    video
+                )
+                id = progress.custom_add_task(
+                    title=video,
+                    description=defaultTitle,
+                    total=audio_stream.filesize + video_stream.filesize,
+                    completed=0,
+                )
+                progress.update_mapping(audio_stream.title, id)
+                progress.update_mapping(video_stream.title, id)
+
+                pool.submit(
+                    download_one_ffmpeg,
+                    audio_stream,
+                    video_stream,
+                    save_dir,
+                    defaultTitle,
+                )
 
 
 def get_videos(url: str, save_dir: Path):
     videos = initialize(url)
-    download(videos, save_dir)
+    if not check_ffmpeg():
+        download(videos, save_dir)
+    else:
+        download_wffmpeg(videos, save_dir)
 
 
 if __name__ == "__main__":

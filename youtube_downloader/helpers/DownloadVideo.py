@@ -61,6 +61,7 @@ def initialize_wffmpeg(url: str) -> tuple[Stream, Stream, str]:
         yt = YouTube(
             url=url,
             client="WEB",
+            on_complete_callback=complete,
             on_progress_callback=progress_update,
         )
         audio_stream = yt.streams.get_audio_only()
@@ -84,7 +85,11 @@ def initialize_wffmpeg(url: str) -> tuple[Stream, Stream, str]:
 def get_video(url: str, save_dir: Path):
     with progress:
         id = progress.custom_add_task(
-            title=url, description="Downloading", start=False
+            title=url,
+            description="Downloading",
+            start=False,
+            total=0,
+            completed=0,
         )
         if not check_ffmpeg():
             stream, defaultTitle = initialize(url)
@@ -113,7 +118,6 @@ def get_video(url: str, save_dir: Path):
             download_video_wffmpeg(
                 audio_stream, video_stream, save_dir, defaultTitle
             )
-            progress.remove_task(id)
 
 
 if __name__ == "__main__":

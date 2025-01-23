@@ -105,9 +105,14 @@ def progress_update(stream: Stream, chunk: bytes, bytes_remaining: int):
 
 
 def complete(stream: Stream, filepath: str):
-    filename = Path(filepath).name
-    print(f"Successfully downloaded {filename} ")
-    progress.remove_task(progress.task_ids_mapping.get(stream.title))
+    file = Path(filepath)
+    id = progress.task_ids_mapping.get(stream.title)
+
+    with progress._lock:
+        if progress._tasks[id].finished:
+            if file.stem not in ["ain", "vin"]:
+                print(f"Successfully downloaded {file.name} ")
+            progress.remove_task(id)
 
 
 def download(stream: Stream, save_dir: Path, filename: str):
