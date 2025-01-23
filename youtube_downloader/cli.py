@@ -20,11 +20,11 @@ def url_validate(url: str) -> bool | str:
 
 
 main_opts = [
-    "1. Download audio only (mp3)",
-    "2. Download video and audio (mp4)",
-    "3. Download video with caption (srt)",
-    "4. Bulk download audios from playlist",
-    "5. Bulk download videos from playlist",
+    "1. Download audio only ",
+    "2. Download video ",
+    "3. Download video with caption ",
+    "4. Download audios from playlist ",
+    "5. Download videos from playlist ",
 ]
 
 
@@ -53,7 +53,7 @@ def main():
             only_directories=True,
             validate=lambda p: (
                 True
-                if Path(p).is_dir()
+                if Path(p).expanduser().is_dir()
                 else "Please enter path to a directory"
             ),
         ),
@@ -63,7 +63,7 @@ def main():
     if not answers:
         return
 
-    save_dir = Path(answers.get("loc"))
+    save_dir = Path(answers.get("loc")).expanduser().resolve()
     url = answers.get("url")
 
     if answers.get("opt").startswith("1."):  # Download audio only

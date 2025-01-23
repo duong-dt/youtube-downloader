@@ -28,11 +28,11 @@
 
 ### Available options:
 
-1. Download audio only (mp3)
-2. Download video and audio (mp4)
-3. Download video with caption (srt)
-4. Bulk download audios from playlist
-5. Bulk download videos from playlist
+1. Download audio only 
+2. Download video 
+3. Download video with caption 
+4. Download audios from playlist
+5. Download videos from playlist
 
 ## Step 3. Choose a directory to save file(s)
 
@@ -47,4 +47,11 @@ Using `pip`: `pip install --upgrade pytubefix`. Or using `uv`: `uv install youtu
    * rich
 
 2. Of `pytubefix`
-   * NodeJS (make sure that NodeJS is available for POTOKEN generation from `pytubefix`)
+   
+   NodeJS is used for POTOKEN generation by `pytubefix`. If NodeJS is not available, POTOKEN will be skipped, may result in YouTube denying `pytubefix`'s requests.
+
+3. FFMPEG
+   
+   Progressive stream (both audio & video in one file) in YouTube has lower resolution. If `ffmpeg` is available, high resolution video & audio will be downloaded separately, then merges using `ffmpeg`.
+
+   If `ffmpeg` is not available in $PATH, progressive stream will be downloaded.
