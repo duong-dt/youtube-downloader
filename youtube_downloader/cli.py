@@ -3,6 +3,8 @@ from urllib.parse import urlparse
 
 import pyperclip
 import questionary
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.history import FileHistory
 
 from youtube_downloader import __version__
 from youtube_downloader.helpers import (
@@ -30,8 +32,19 @@ main_opts = [
 ]
 
 
+url_hist_path = Path("~/.local/share/youtube-downloader-cli/url_history").expanduser()
+url_hist = FileHistory(url_hist_path)
+save_hist_path = Path("~/.local/share/youtube-downloader-cli/save_history").expanduser()
+save_hist = FileHistory(save_hist_path)
+
+
 def main() -> None:
     print(f"youtube-downloader version {__version__}")
+
+    if not url_hist_path.parent.exists():
+        url_hist_path.parent.mkdir(parents=True)
+    url_hist_path.touch()
+    save_hist_path.touch()
 
     # Get URL from clipboard if available
     if not pyperclip.is_available():
@@ -43,13 +56,25 @@ def main() -> None:
 
     # Get user inputs (URL, action, save location)
     answers = questionary.form(
-        url=questionary.text(message="Enter YouTube URL:", default=txt, validate=url_validate),
+        url=questionary.text(
+            message="Enter YouTube URL:",
+            default=txt,
+            validate=url_validate,
+            enable_history_search=True,
+            history=url_hist,
+            auto_suggest=AutoSuggestFromHistory(),
+        ),
         opt=questionary.select(message="What do you want to download ?", choices=main_opts),
         loc=questionary.path(
             message="Where do you want to save ?",
             default=str(Path.cwd()),
             only_directories=True,
-            validate=lambda p: (True if Path(p).is_dir() else "Please enter path to a directory"),
+            validate=lambda p: (
+                True if Path(p).expanduser().is_dir() else "Please enter path to a directory"
+            ),
+            enable_history_search=False,
+            history=save_hist,
+            auto_suggest=AutoSuggestFromHistory(),
         ),
     ).ask()
 
