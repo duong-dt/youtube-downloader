@@ -1,5 +1,15 @@
-from .DownloadVideo import initialize as init_one
-from .util import download as download_one, _error, progress
+from .DownloadVideo import (
+    initialize as init_one,
+    initialize_wffmpeg as init_one_ffmpeg,
+)
+from .util import (
+    download as download_one,
+    download_video_wffmpeg as download_one_ffmpeg,
+    _error,
+    progress,
+    check_ffmpeg,
+    wait,
+)
 from pytubefix import Playlist
 from pytubefix.exceptions import PytubeFixError as PytubeError
 from pathlib import Path
@@ -28,24 +38,63 @@ def initialize(url: str) -> Iterable[str]:
         _error(err)
 
 
-def download(videos: Iterable[str], save_dir: Path):
+def download(urls: Iterable[str], save_dir: Path):
+    def run(url):
+        id = progress.custom_add_task(
+            title=url,
+            description="Downloading ...",
+            total=0,
+            completed=0,
+        )
+        stream, defaultTitle = init_one(url)
+        progress.update(id, description=stream.title, total=stream.filesize)
+        progress.update_mapping(stream.title, id)
+        download_one(stream, save_dir, defaultTitle)
+
+    with progress:
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            for url in urls:
+                pool.submit(run, url)
+
+
+def download_wffmpeg(videos: Iterable[str], save_dir: Path):
+    def run(url):
+        id = progress.custom_add_task(
+            title=url,
+            description="Downloading ...",
+            total=0,
+            completed=0,
+        )
+        audio_stream, video_stream, defaultTitle = init_one_ffmpeg(video)
+        if not save_dir.joinpath(defaultTitle).exists():
+            progress.update(
+                id,
+                description=defaultTitle,
+                total=audio_stream.filesize + video_stream.filesize,
+                completed=0,
+            )
+            progress.update_mapping(audio_stream.title, id)
+            progress.update_mapping(video_stream.title, id)
+            download_one_ffmpeg(
+                audio_stream,
+                video_stream,
+                save_dir,
+                defaultTitle,
+            )
+
     with progress:
         with ThreadPoolExecutor(max_workers=4) as pool:
             for video in videos:
-                stream, defaultTitle = init_one(video)
-                progress.custom_add_task(
-                    title=stream.title,
-                    description=defaultTitle,
-                    total=stream.filesize,
-                )
-                # print(f"\nDownloading {defaultTitle} ")
-                pool.submit(download_one, stream, save_dir, defaultTitle)
-                # download_one(stream, save_dir, defaultTitle)
+                pool.submit(run, video)
+                wait(0.5)
 
 
 def get_videos(url: str, save_dir: Path):
     videos = initialize(url)
-    download(videos, save_dir)
+    if not check_ffmpeg():
+        download(videos, save_dir)
+    else:
+        download_wffmpeg(videos, save_dir)
 
 
 if __name__ == "__main__":

@@ -25,9 +25,9 @@ def initialize(url: str) -> tuple[Stream, str]:
             on_progress_callback=progress_update,
         )
         stream = yt.streams.get_audio_only()
-        defaultTitle = getDefaultTitle(stream.title)
+        defaultTitle = getDefaultTitle(stream)
 
-        return stream, defaultTitle + ".mp3"
+        return stream, defaultTitle
     except URLError:
         if _ATTEMPTS < 4:
             print("\nConnection Error !!! Trying again ... ")

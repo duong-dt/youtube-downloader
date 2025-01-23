@@ -14,6 +14,8 @@ from rich.progress import (
 from rich.table import Column
 from typing import Any
 import unicodedata
+from tempfile import TemporaryDirectory
+from time import sleep
 
 
 class CustomProgress(Progress):
@@ -100,13 +102,18 @@ def progress_update(stream: Stream, chunk: bytes, bytes_remaining: int):
     global progress
     # on_progress(stream, chunk, bytes_remaining)
     id = progress.task_ids_mapping.get(stream.title)
-    progress.update(id, completed=stream.filesize - bytes_remaining)
+    progress.update(id, advance=len(chunk))
 
 
 def complete(stream: Stream, filepath: str):
-    filename = Path(filepath).name
-    print(f"Successfully downloaded {filename} ")
-    progress.remove_task(progress.task_ids_mapping.get(stream.title))
+    file = Path(filepath)
+    id = progress.task_ids_mapping.get(stream.title)
+
+    with progress._lock:
+        if progress._tasks[id].finished:
+            if file.stem not in ["ain", "vin"]:
+                print(f"Successfully downloaded {file.name} ")
+            progress.remove_task(id)
 
 
 def download(stream: Stream, save_dir: Path, filename: str):
@@ -118,11 +125,13 @@ def _error(_exception: Exception):
     sys.exit(1)
 
 
-def getDefaultTitle(title: str) -> str:
+def getDefaultTitle(stream: Stream) -> str:
     """
     Create safe file name by removing special character
     from YouTube video title
     """
+
+    title = stream.default_filename
 
     special_char = [
         x
@@ -133,3 +142,68 @@ def getDefaultTitle(title: str) -> str:
         title.replace(c, "")
 
     return title
+
+
+def check_ffmpeg() -> bool:
+    """
+    Check if ffmpeg is available.
+    return True if ffmpeg is present, False otherwise
+    """
+
+    import subprocess
+
+    try:
+        subprocess.check_call(
+            ["ffmpeg", "-version"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        print("ffmpeg is not available", file=sys.stderr)
+        return False
+
+
+def ffmpeg_merge(audio: Path, video: Path, out: Path) -> bool:
+    import subprocess
+
+    try:
+        subprocess.check_call(
+            [
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(audio.resolve()),
+                "-i",
+                str(video.resolve()),
+                "-c",
+                "copy",
+                "-loglevel",
+                "warning",
+                str(out.resolve()),
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return True
+    except subprocess.CalledProcessError:
+        print(f"ffmpeg convert failed for {out.name}", file=sys.stderr)
+        return False
+
+
+def download_video_wffmpeg(
+    audio_stream: Stream, video_stream: Stream, save_dir: Path, filename: str
+):
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir:
+        audio_file = Path(tmpdir) / f"ain.{audio_stream.subtype}"
+        video_file = Path(tmpdir) / f"vin.{video_stream.subtype}"
+
+        download(audio_stream, Path(tmpdir), audio_file.name)
+        download(video_stream, Path(tmpdir), video_file.name)
+
+        if ffmpeg_merge(audio_file, video_file, save_dir / filename):
+            print(f"Successfully downloaded {filename}")
+
+
+def wait(sec: float):
+    sleep(sec)
