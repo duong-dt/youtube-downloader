@@ -6,8 +6,11 @@ from .util import (
     progress,
     progress2,
     getDefaultTitle,
+    check_ffmpeg,
+    download_video_wffmpeg,
 )
-from pytubefix import YouTube, Stream, Caption
+from .DownloadVideo import get_resolution_upto
+from pytubefix import YouTube, Stream, Caption, CaptionQuery
 from pytubefix.exceptions import PytubeFixError as PytubeError
 from urllib.error import URLError
 from pathlib import Path
@@ -16,6 +19,26 @@ from typing import Iterable
 
 global _ATTEMPTS
 _ATTEMPTS = 1
+
+
+def select_captions(captions: CaptionQuery) -> Iterable[Caption]:
+    selected_captions = []
+    if len(captions) == 0:
+        print("No caption available")
+    elif len(captions) > 1:
+        caption_choices = questionary.checkbox(
+            message="Select captions to download",
+            choices=[
+                f"{code} ---- {captions[code].name}"
+                for code in captions.lang_code_index.keys()
+            ],
+        ).ask()
+        for choice in caption_choices:
+            code = choice.split("----", 1)[0].strip()
+            selected_captions.append(captions.get(code))
+    else:
+        selected_captions = captions
+    return selected_captions
 
 
 def initialize(url: str) -> tuple[Stream, Iterable[Caption], str]:
@@ -29,24 +52,38 @@ def initialize(url: str) -> tuple[Stream, Iterable[Caption], str]:
         )
         stream = yt.streams.filter(progressive=True).get_highest_resolution()
         defaultTitle = getDefaultTitle(stream)
+        captions = select_captions(yt.captions)
 
-        captions = []
-        if len(yt.captions) == 0:
-            print("No caption available")
-        elif len(yt.captions) > 1:
-            caption_choices = questionary.checkbox(
-                message="Select captions to download",
-                choices=[
-                    f"{code} ---- {yt.captions[code].name}"
-                    for code in yt.captions.lang_code_index.keys()
-                ],
-            ).ask()
-            for choice in caption_choices:
-                code = choice.split("----", 1)[0].strip()
-                captions.append(yt.captions.get(code))
-        else:
-            captions = yt.captions
         return stream, captions, defaultTitle
+    except URLError:
+        if _ATTEMPTS < 4:
+            print("\nConnection Error !!! Trying again ... ")
+            _ATTEMPTS += 1
+            return initialize(url)
+        else:
+            _error(Exception("Cannot connect to Youtube !!!"))
+    except PytubeError as err:
+        _error(err)
+
+
+def initialize_wffmpeg(
+    url: str,
+) -> tuple[Stream, Stream, Iterable[Caption], str]:
+    global _ATTEMPTS
+    try:
+        yt = YouTube(
+            url=url,
+            client="WEB",
+            on_progress_callback=progress_update,
+        )
+        audio_stream = yt.streams.get_audio_only()
+        video_stream = get_resolution_upto(
+            yt.streams.filter(only_video=True, subtype="mp4")
+        )
+        defaultTitle = getDefaultTitle(video_stream)
+        captions = select_captions(yt.captions)
+
+        return audio_stream, video_stream, captions, defaultTitle
     except URLError:
         if _ATTEMPTS < 4:
             print("\nConnection Error !!! Trying again ... ")
@@ -64,20 +101,45 @@ def get_srt_name(fname: str, code: str) -> str:
 
 
 def get_video_srt(url: str, save_dir: Path):
-    stream, captions, defaultTitle = initialize(url)
-    with progress:
-        progress.custom_add_task(
-            title=stream.title, description=defaultTitle, total=stream.filesize
+    ffmpeg_available = check_ffmpeg()
+    if not ffmpeg_available:
+        stream, captions, defaultTitle = initialize(url)
+    else:
+        audio_stream, video_stream, captions, defaultTitle = (
+            initialize_wffmpeg(url)
         )
-        # print(f"Downloading {defaultTitle} - {stream.resolution}")
-        download(stream, save_dir, defaultTitle)
+    with progress:
+        if not ffmpeg_available:
+            progress.custom_add_task(
+                title=stream.title,
+                description=defaultTitle,
+                total=stream.filesize,
+            )
+
+            download(stream, save_dir, defaultTitle)
+        else:
+            id = progress.custom_add_task(
+                title=url,
+                description=defaultTitle,
+                total=audio_stream.filesize + video_stream.filesize,
+                completed=0,
+            )
+
+            progress.update_mapping(audio_stream.title, id)
+            progress.update_mapping(video_stream.title, id)
+
+            download_video_wffmpeg(
+                audio_stream, video_stream, save_dir, defaultTitle
+            )
+
+            progress.remove_task(id)
 
     with progress2:
         id = progress2.add_task(
             "Downloading captions ... ", total=len(captions)
         )
         for cap in captions:
-            # print(f"Downloading subtitle {cap.name} ")
+
             with open(
                 save_dir.joinpath(get_srt_name(defaultTitle, cap.code)), "w"
             ) as file_handle:
