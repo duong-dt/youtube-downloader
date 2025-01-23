@@ -1,14 +1,16 @@
-from pytubefix import YouTube, Stream
-from pytubefix.exceptions import PytubeFixError as PytubeError
-from urllib.error import URLError
 from pathlib import Path
-from .util import (
+from urllib.error import URLError
+
+from pytubefix import Stream, YouTube
+from pytubefix.exceptions import PytubeFixError as PytubeError
+
+from youtube_downloader.helpers.util import (
     _error,
     complete,
-    progress_update,
     download,
-    progress,
     getDefaultTitle,
+    progress,
+    progress_update,
 )
 
 global _ATTEMPTS
@@ -39,17 +41,13 @@ def initialize(url: str) -> tuple[Stream, str]:
         _error(err)
 
 
-def get_audio(url: str, save_dir: Path):
+def get_audio(url: str, save_dir: Path) -> None:
     with progress:
-        id = progress.custom_add_task(
-            title=url, description="Downloading", start=False
-        )
+        task_id = progress.custom_add_task(title=url, description="Downloading", start=False)
         stream, defaultTitle = initialize(url)
-        progress.start_task(id)
-        progress.update(
-            id, description=defaultTitle, total=stream.filesize, completed=0
-        )
-        progress.update_mapping(stream.title, id)
+        progress.start_task(task_id)
+        progress.update(task_id, description=defaultTitle, total=stream.filesize, completed=0)
+        progress.update_mapping(stream.title, task_id)
         # print(f"Downloading {defaultTitle}")
         download(stream, save_dir, defaultTitle)
 

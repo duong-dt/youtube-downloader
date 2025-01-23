@@ -1,22 +1,29 @@
-from .DownloadVideo import (
-    initialize as init_one,
-    initialize_wffmpeg as init_one_ffmpeg,
-)
-from .util import (
-    download as download_one,
-    download_video_wffmpeg as download_one_ffmpeg,
-    _error,
-    progress,
-    check_ffmpeg,
-    wait,
-)
-from pytubefix import Playlist
-from pytubefix.exceptions import PytubeFixError as PytubeError
+from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.error import URLError
-from typing import Iterable
-from concurrent.futures import ThreadPoolExecutor
 
+from pytubefix import Playlist
+from pytubefix.exceptions import PytubeFixError as PytubeError
+
+from youtube_downloader.helpers.DownloadVideo import (
+    initialize as init_one,
+)
+from youtube_downloader.helpers.DownloadVideo import (
+    initialize_wffmpeg as init_one_ffmpeg,
+)
+from youtube_downloader.helpers.util import (
+    _error,
+    check_ffmpeg,
+    progress,
+    wait,
+)
+from youtube_downloader.helpers.util import (
+    download as download_one,
+)
+from youtube_downloader.helpers.util import (
+    download_video_wffmpeg as download_one_ffmpeg,
+)
 
 global _ATTEMPTS
 _ATTEMPTS = 1
@@ -38,17 +45,17 @@ def initialize(url: str) -> Iterable[str]:
         _error(err)
 
 
-def download(urls: Iterable[str], save_dir: Path):
-    def run(url):
-        id = progress.custom_add_task(
+def download(urls: Iterable[str], save_dir: Path) -> None:
+    def run(url: str) -> None:
+        task_id = progress.custom_add_task(
             title=url,
             description="Downloading ...",
             total=0,
             completed=0,
         )
         stream, defaultTitle = init_one(url)
-        progress.update(id, description=stream.title, total=stream.filesize)
-        progress.update_mapping(stream.title, id)
+        progress.update(task_id, description=stream.title, total=stream.filesize)
+        progress.update_mapping(stream.title, task_id)
         download_one(stream, save_dir, defaultTitle)
 
     with progress:
@@ -57,9 +64,9 @@ def download(urls: Iterable[str], save_dir: Path):
                 pool.submit(run, url)
 
 
-def download_wffmpeg(videos: Iterable[str], save_dir: Path):
-    def run(url):
-        id = progress.custom_add_task(
+def download_wffmpeg(videos: Iterable[str], save_dir: Path) -> None:
+    def run(url: str) -> None:
+        task_id = progress.custom_add_task(
             title=url,
             description="Downloading ...",
             total=0,
@@ -68,13 +75,13 @@ def download_wffmpeg(videos: Iterable[str], save_dir: Path):
         audio_stream, video_stream, defaultTitle = init_one_ffmpeg(video)
         if not save_dir.joinpath(defaultTitle).exists():
             progress.update(
-                id,
+                task_id,
                 description=defaultTitle,
                 total=audio_stream.filesize + video_stream.filesize,
                 completed=0,
             )
-            progress.update_mapping(audio_stream.title, id)
-            progress.update_mapping(video_stream.title, id)
+            progress.update_mapping(audio_stream.title, task_id)
+            progress.update_mapping(video_stream.title, task_id)
             download_one_ffmpeg(
                 audio_stream,
                 video_stream,
@@ -89,7 +96,7 @@ def download_wffmpeg(videos: Iterable[str], save_dir: Path):
                 wait(0.5)
 
 
-def get_videos(url: str, save_dir: Path):
+def get_videos(url: str, save_dir: Path) -> None:
     videos = initialize(url)
     if not check_ffmpeg():
         download(videos, save_dir)
