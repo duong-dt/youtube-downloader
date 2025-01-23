@@ -1,15 +1,17 @@
-import questionary
 from pathlib import Path
 from urllib.parse import urlparse
+
 import pyperclip
-from youtube_downloader.helpers import (
-    get_audios,
-    get_audio,
-    get_video,
-    get_videos,
-    get_video_srt,
-)
+import questionary
+
 from youtube_downloader import __version__
+from youtube_downloader.helpers import (
+    get_audio,
+    get_audios,
+    get_video,
+    get_video_srt,
+    get_videos,
+)
 
 
 def url_validate(url: str) -> bool | str:
@@ -28,7 +30,7 @@ main_opts = [
 ]
 
 
-def main():
+def main() -> None:
     print(f"youtube-downloader version {__version__}")
 
     # Get URL from clipboard if available
@@ -41,21 +43,13 @@ def main():
 
     # Get user inputs (URL, action, save location)
     answers = questionary.form(
-        url=questionary.text(
-            message="Enter YouTube URL:", default=txt, validate=url_validate
-        ),
-        opt=questionary.select(
-            message="What do you want to download ?", choices=main_opts
-        ),
+        url=questionary.text(message="Enter YouTube URL:", default=txt, validate=url_validate),
+        opt=questionary.select(message="What do you want to download ?", choices=main_opts),
         loc=questionary.path(
             message="Where do you want to save ?",
             default=str(Path.cwd()),
             only_directories=True,
-            validate=lambda p: (
-                True
-                if Path(p).is_dir()
-                else "Please enter path to a directory"
-            ),
+            validate=lambda p: (True if Path(p).is_dir() else "Please enter path to a directory"),
         ),
     ).ask()
 

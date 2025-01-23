@@ -1,38 +1,42 @@
-from pathlib import Path
 import sys
-from pytubefix import Stream
-from rich.progress import (
-    Progress,
-    TaskID,
-    TextColumn,
-    BarColumn,
-    TaskProgressColumn,
-    TotalFileSizeColumn,
-    FileSizeColumn,
-    SpinnerColumn,
-)
-from rich.table import Column
-from typing import Any
 import unicodedata
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
+from typing import Any
+
+from pytubefix import Stream
+from rich.console import Console
+from rich.progress import (
+    BarColumn,
+    FileSizeColumn,
+    GetTimeCallable,
+    Progress,
+    ProgressColumn,
+    SpinnerColumn,
+    TaskID,
+    TaskProgressColumn,
+    TextColumn,
+    TotalFileSizeColumn,
+)
+from rich.table import Column
 
 
 class CustomProgress(Progress):
     def __init__(
         self,
-        *columns,
-        console=None,
-        auto_refresh=True,
-        refresh_per_second=10,
-        speed_estimate_period=30,
-        transient=False,
-        redirect_stdout=True,
-        redirect_stderr=True,
-        get_time=None,
-        disable=False,
-        expand=False,
-    ):
+        *columns: str | ProgressColumn,
+        console: Console | None = None,
+        auto_refresh: bool = True,
+        refresh_per_second: float = 10,
+        speed_estimate_period: float = 30,
+        transient: bool = False,
+        redirect_stdout: bool = True,
+        redirect_stderr: bool = True,
+        get_time: GetTimeCallable | None = None,
+        disable: bool = False,
+        expand: bool = False,
+    ) -> None:
         super().__init__(
             *columns,
             console=console,
@@ -58,14 +62,12 @@ class CustomProgress(Progress):
         visible: bool = True,
         **fields: Any,
     ) -> TaskID:
-        id = self.add_task(
-            description, start, total, completed, visible, **fields
-        )
-        self.task_ids_mapping[title] = id
-        return id
+        task_id = self.add_task(description, start, total, completed, visible, **fields)
+        self.task_ids_mapping[title] = task_id
+        return task_id
 
-    def update_mapping(self, title: str, id: int):
-        self.task_ids_mapping[title] = id
+    def update_mapping(self, title: str, task_id: int) -> None:
+        self.task_ids_mapping[title] = task_id
 
 
 progress: CustomProgress = CustomProgress(
@@ -98,29 +100,29 @@ progress2: Progress = Progress(
 )
 
 
-def progress_update(stream: Stream, chunk: bytes, bytes_remaining: int):
+def progress_update(stream: Stream, chunk: bytes, bytes_remaining: int) -> None:
     global progress
     # on_progress(stream, chunk, bytes_remaining)
-    id = progress.task_ids_mapping.get(stream.title)
-    progress.update(id, advance=len(chunk))
+    task_id = progress.task_ids_mapping.get(stream.title)
+    progress.update(task_id, advance=len(chunk))
 
 
-def complete(stream: Stream, filepath: str):
+def complete(stream: Stream, filepath: str) -> None:
     file = Path(filepath)
-    id = progress.task_ids_mapping.get(stream.title)
+    task_id = progress.task_ids_mapping.get(stream.title)
 
     with progress._lock:
-        if progress._tasks[id].finished:
+        if progress._tasks[task_id].finished:
             if file.stem not in ["ain", "vin"]:
                 print(f"Successfully downloaded {file.name} ")
-            progress.remove_task(id)
+            progress.remove_task(task_id)
 
 
-def download(stream: Stream, save_dir: Path, filename: str):
+def download(stream: Stream, save_dir: Path, filename: str) -> None:
     stream.download(filename=filename, output_path=save_dir)
 
 
-def _error(_exception: Exception):
+def _error(_exception: Exception) -> None:
     print(f"{type(_exception).__name__} : {_exception}")
     sys.exit(1)
 
@@ -134,9 +136,7 @@ def getDefaultTitle(stream: Stream) -> str:
     title = stream.default_filename
 
     special_char = [
-        x
-        for x in title
-        if unicodedata.category(x)[0] not in "LN" and x not in "_-()[]! "
+        x for x in title if unicodedata.category(x)[0] not in "LN" and x not in "_-()[]! "
     ]
     for c in special_char:
         title.replace(c, "")
@@ -168,23 +168,20 @@ def ffmpeg_merge(audio: Path, video: Path, out: Path) -> bool:
     import subprocess
 
     try:
+        # fmt: off
         subprocess.check_call(
             [
-                "ffmpeg",
-                "-y",
-                "-i",
-                str(audio.resolve()),
-                "-i",
-                str(video.resolve()),
-                "-c",
-                "copy",
-                "-loglevel",
-                "warning",
+                "ffmpeg", "-y",
+                "-i", str(audio.resolve()),
+                "-i", str(video.resolve()),
+                "-c", "copy",
+                "-loglevel", "warning",
                 str(out.resolve()),
             ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
+        # fmt: on
         return True
     except subprocess.CalledProcessError:
         print(f"ffmpeg convert failed for {out.name}", file=sys.stderr)
@@ -193,7 +190,7 @@ def ffmpeg_merge(audio: Path, video: Path, out: Path) -> bool:
 
 def download_video_wffmpeg(
     audio_stream: Stream, video_stream: Stream, save_dir: Path, filename: str
-):
+) -> None:
     with TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir:
         audio_file = Path(tmpdir) / f"ain.{audio_stream.subtype}"
         video_file = Path(tmpdir) / f"vin.{video_stream.subtype}"
@@ -205,5 +202,5 @@ def download_video_wffmpeg(
             print(f"Successfully downloaded {filename}")
 
 
-def wait(sec: float):
+def wait(sec: float) -> None:
     sleep(sec)

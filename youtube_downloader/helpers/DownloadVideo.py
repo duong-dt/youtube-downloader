@@ -1,16 +1,18 @@
-from pytubefix import YouTube, Stream, StreamQuery
-from pytubefix.exceptions import PytubeFixError as PytubeError
-from urllib.error import URLError
 from pathlib import Path
-from .util import (
+from urllib.error import URLError
+
+from pytubefix import Stream, StreamQuery, YouTube
+from pytubefix.exceptions import PytubeFixError as PytubeError
+
+from youtube_downloader.helpers.util import (
     _error,
-    complete,
-    progress_update,
-    download,
-    progress,
-    getDefaultTitle,
     check_ffmpeg,
+    complete,
+    download,
     download_video_wffmpeg,
+    getDefaultTitle,
+    progress,
+    progress_update,
 )
 
 global _ATTEMPTS
@@ -65,9 +67,7 @@ def initialize_wffmpeg(url: str) -> tuple[Stream, Stream, str]:
             on_progress_callback=progress_update,
         )
         audio_stream = yt.streams.get_audio_only()
-        video_stream = get_resolution_upto(
-            yt.streams.filter(only_video=True, subtype="mp4")
-        )
+        video_stream = get_resolution_upto(yt.streams.filter(only_video=True, subtype="mp4"))
         defaultTitle = getDefaultTitle(video_stream)
 
         return audio_stream, video_stream, defaultTitle
@@ -82,9 +82,9 @@ def initialize_wffmpeg(url: str) -> tuple[Stream, Stream, str]:
         _error(err)
 
 
-def get_video(url: str, save_dir: Path):
+def get_video(url: str, save_dir: Path) -> None:
     with progress:
-        id = progress.custom_add_task(
+        task_id = progress.custom_add_task(
             title=url,
             description="Downloading",
             start=False,
@@ -93,32 +93,30 @@ def get_video(url: str, save_dir: Path):
         )
         if not check_ffmpeg():
             stream, defaultTitle = initialize(url)
-            progress.start_task(id)
+            progress.start_task(task_id)
             progress.update(
-                id,
+                task_id,
                 description=defaultTitle,
                 total=stream.filesize,
                 completed=0,
             )
-            progress.update_mapping(stream.title, id)
+            progress.update_mapping(stream.title, task_id)
 
             download(stream, save_dir, defaultTitle)
         else:
             audio_stream, video_stream, defaultTitle = initialize_wffmpeg(url)
             if not save_dir.joinpath(defaultTitle).exists():
-                progress.start_task(id)
+                progress.start_task(task_id)
                 progress.update(
-                    id,
+                    task_id,
                     description=defaultTitle,
                     total=audio_stream.filesize + video_stream.filesize,
                     completed=0,
                 )
-                progress.update_mapping(audio_stream.title, id)
-                progress.update_mapping(video_stream.title, id)
+                progress.update_mapping(audio_stream.title, task_id)
+                progress.update_mapping(video_stream.title, task_id)
 
-                download_video_wffmpeg(
-                    audio_stream, video_stream, save_dir, defaultTitle
-                )
+                download_video_wffmpeg(audio_stream, video_stream, save_dir, defaultTitle)
 
 
 if __name__ == "__main__":

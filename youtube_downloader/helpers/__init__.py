@@ -9,7 +9,7 @@ __all__ = [
     "get_audio",
     "get_audios",
     "get_video",
-    "get_videos",
     "get_video_srt",
+    "get_videos",
     "progress",
 ]

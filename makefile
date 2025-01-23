@@ -10,10 +10,14 @@ PYPI_INDEX=https://pypi.org/simple/
 run:
 	uv run $(CMD)
 
-rebuild: clean
+format:
+	uv run ruff check --fix
+	uv run ruff format
+
+rebuild: clean format
 	uv build --refresh
 
-build:
+build: format
 	uv build 
 
 init: clean
