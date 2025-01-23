@@ -1,4 +1,4 @@
-from pytubefix import YouTube, Stream
+from pytubefix import YouTube, Stream, StreamQuery
 from pytubefix.exceptions import PytubeFixError as PytubeError
 from urllib.error import URLError
 from pathlib import Path
@@ -9,6 +9,8 @@ from .util import (
     download,
     progress,
     getDefaultTitle,
+    check_ffmpeg,
+    download_video_wffmpeg,
 )
 
 global _ATTEMPTS
@@ -39,19 +41,79 @@ def initialize(url: str) -> tuple[Stream, str]:
         _error(err)
 
 
+def get_resolution_upto(streams: StreamQuery, max_res: int = 1080) -> Stream:
+    return sorted(
+        filter(
+            lambda s: int(s.resolution[:-1]) <= max_res,
+            streams.filter(only_video=True),
+        ),
+        key=lambda s: int(s.resolution[:-1]),
+    )[-1]
+
+
+def initialize_wffmpeg(url: str) -> tuple[Stream, Stream, str]:
+    """
+    With ffmpeg available, get audio & stream separately.
+    return AudioStream, VideoStream, DefaultTitle
+    """
+    global _ATTEMPTS
+    try:
+        yt = YouTube(
+            url=url,
+            client="WEB",
+            on_progress_callback=progress_update,
+        )
+        audio_stream = yt.streams.get_audio_only()
+        video_stream = get_resolution_upto(
+            yt.streams.filter(only_video=True, subtype="mp4")
+        )
+        defaultTitle = getDefaultTitle(video_stream)
+
+        return audio_stream, video_stream, defaultTitle
+    except URLError:
+        if _ATTEMPTS < 4:
+            print("\nConnection Error !!! Trying again ... ")
+            _ATTEMPTS += 1
+            return initialize_wffmpeg(url)
+        else:
+            _error(Exception("Cannot connect to Youtube !!!"))
+    except PytubeError as err:
+        _error(err)
+
+
 def get_video(url: str, save_dir: Path):
     with progress:
         id = progress.custom_add_task(
             title=url, description="Downloading", start=False
         )
-        stream, defaultTitle = initialize(url)
-        progress.start_task(id)
-        progress.update(
-            id, description=defaultTitle, total=stream.filesize, completed=0
-        )
-        progress.update_mapping(stream.title, id)
-        # print(f"Downloading {defaultTitle} - {stream.resolution} ")
-        download(stream, save_dir, defaultTitle)
+        if not check_ffmpeg():
+            stream, defaultTitle = initialize(url)
+            progress.start_task(id)
+            progress.update(
+                id,
+                description=defaultTitle,
+                total=stream.filesize,
+                completed=0,
+            )
+            progress.update_mapping(stream.title, id)
+
+            download(stream, save_dir, defaultTitle)
+        else:
+            audio_stream, video_stream, defaultTitle = initialize_wffmpeg(url)
+            progress.start_task(id)
+            progress.update(
+                id,
+                description=defaultTitle,
+                total=audio_stream.filesize + video_stream.filesize,
+                completed=0,
+            )
+            progress.update_mapping(audio_stream.title, id)
+            progress.update_mapping(video_stream.title, id)
+
+            download_video_wffmpeg(
+                audio_stream, video_stream, save_dir, defaultTitle
+            )
+            progress.remove_task(id)
 
 
 if __name__ == "__main__":
