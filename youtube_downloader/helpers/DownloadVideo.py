@@ -105,19 +105,20 @@ def get_video(url: str, save_dir: Path):
             download(stream, save_dir, defaultTitle)
         else:
             audio_stream, video_stream, defaultTitle = initialize_wffmpeg(url)
-            progress.start_task(id)
-            progress.update(
-                id,
-                description=defaultTitle,
-                total=audio_stream.filesize + video_stream.filesize,
-                completed=0,
-            )
-            progress.update_mapping(audio_stream.title, id)
-            progress.update_mapping(video_stream.title, id)
+            if not save_dir.joinpath(defaultTitle).exists():
+                progress.start_task(id)
+                progress.update(
+                    id,
+                    description=defaultTitle,
+                    total=audio_stream.filesize + video_stream.filesize,
+                    completed=0,
+                )
+                progress.update_mapping(audio_stream.title, id)
+                progress.update_mapping(video_stream.title, id)
 
-            download_video_wffmpeg(
-                audio_stream, video_stream, save_dir, defaultTitle
-            )
+                download_video_wffmpeg(
+                    audio_stream, video_stream, save_dir, defaultTitle
+                )
 
 
 if __name__ == "__main__":

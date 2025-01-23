@@ -1,7 +1,7 @@
 from .DownloadAudio import initialize as init_one
 from pytubefix import Playlist
 from pytubefix.exceptions import PytubeFixError as PytubeError
-from .util import download as download_one, _error, progress
+from .util import download as download_one, _error, progress, wait
 from pathlib import Path
 from urllib.error import URLError
 from typing import Iterable
@@ -27,24 +27,29 @@ def initialize(url: str) -> Iterable[str]:
         _error(err)
 
 
-def download(videos: Iterable[str], save_dir: Path):
+def download(urls: Iterable[str], save_dir: Path):
+    def run(url):
+        id = progress.custom_add_task(
+            title=url,
+            description="Downloading ...",
+            total=0,
+            completed=0,
+        )
+        stream, defaultTitle = init_one(url)
+        progress.update(id, description=stream.title, total=stream.filesize)
+        progress.update_mapping(stream.title, id)
+        download_one(stream, save_dir, defaultTitle)
+
     with progress:
         with ThreadPoolExecutor(max_workers=4) as pool:
-            for video in videos:
-                stream, defaultTitle = init_one(video)
-                progress.custom_add_task(
-                    title=stream.title,
-                    description=defaultTitle,
-                    total=stream.filesize,
-                )
-                # print(f"\nDownloading {defaultTitle} ")
-                pool.submit(download_one, stream, save_dir, defaultTitle)
-                # download_one(stream, save_dir, defaultTitle)
+            for url in urls:
+                pool.submit(run, url)
+                wait(0.5)
 
 
 def get_audios(url: str, save_dir: Path):
-    videos = initialize(url)
-    download(videos, save_dir)
+    urls = initialize(url)
+    download(urls, save_dir)
 
 
 if __name__ == "__main__":

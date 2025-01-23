@@ -15,6 +15,7 @@ from rich.table import Column
 from typing import Any
 import unicodedata
 from tempfile import TemporaryDirectory
+from time import sleep
 
 
 class CustomProgress(Progress):
@@ -203,3 +204,6 @@ def download_video_wffmpeg(
         if ffmpeg_merge(audio_file, video_file, save_dir / filename):
             print(f"Successfully downloaded {filename}")
 
+
+def wait(sec: float):
+    sleep(sec)
