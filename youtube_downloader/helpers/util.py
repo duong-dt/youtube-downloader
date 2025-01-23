@@ -118,11 +118,13 @@ def _error(_exception: Exception):
     sys.exit(1)
 
 
-def getDefaultTitle(title: str) -> str:
+def getDefaultTitle(stream: Stream) -> str:
     """
     Create safe file name by removing special character
     from YouTube video title
     """
+
+    title = stream.default_filename
 
     special_char = [
         x

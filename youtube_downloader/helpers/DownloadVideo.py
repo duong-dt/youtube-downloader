@@ -25,9 +25,9 @@ def initialize(url: str) -> tuple[Stream, str]:
             on_progress_callback=progress_update,
         )
         stream = yt.streams.filter(progressive=True).get_highest_resolution()
-        defaultTitle = getDefaultTitle(stream.title)
+        defaultTitle = getDefaultTitle(stream)
 
-        return stream, defaultTitle + ".mp4"
+        return stream, defaultTitle
     except URLError:
         if _ATTEMPTS < 4:
             print("\nConnection Error !!! Trying again ... ")

@@ -28,7 +28,7 @@ def initialize(url: str) -> tuple[Stream, Iterable[Caption], str]:
             on_progress_callback=progress_update,
         )
         stream = yt.streams.filter(progressive=True).get_highest_resolution()
-        defaultTitle = getDefaultTitle(stream.title)
+        defaultTitle = getDefaultTitle(stream)
 
         captions = []
         if len(yt.captions) == 0:
@@ -46,7 +46,7 @@ def initialize(url: str) -> tuple[Stream, Iterable[Caption], str]:
                 captions.append(yt.captions.get(code))
         else:
             captions = yt.captions
-        return stream, captions, defaultTitle + ".mp4"
+        return stream, captions, defaultTitle
     except URLError:
         if _ATTEMPTS < 4:
             print("\nConnection Error !!! Trying again ... ")
