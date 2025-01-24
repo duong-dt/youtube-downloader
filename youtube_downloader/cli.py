@@ -1,10 +1,14 @@
+import io
+from collections.abc import Callable
 from pathlib import Path
 from urllib.parse import urlparse
 
+import click
 import pyperclip
 import questionary
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
+from rich.console import Console
 
 from youtube_downloader import __version__
 from youtube_downloader.helpers import (
@@ -23,13 +27,15 @@ def url_validate(url: str) -> bool | str:
         return "Please enter a YouTube URL"
 
 
-main_opts = [
-    "1. Download audio only ",
-    "2. Download video ",
-    "3. Download video with caption ",
-    "4. Download audios from playlist ",
-    "5. Download videos from playlist ",
-]
+# fmt: off
+main_opts: dict[str, Callable[[str, Path], None]] = {
+    "1. Download audio only "           : get_audio,
+    "2. Download video "                : get_video,
+    "3. Download video with caption "   : get_video_srt,
+    "4. Download audios from playlist " : get_audios,
+    "5. Download videos from playlist " : get_videos,
+}
+# fmt: on
 
 
 url_hist_path = Path("~/.local/share/youtube-downloader-cli/url_history").expanduser()
@@ -38,8 +44,87 @@ save_hist_path = Path("~/.local/share/youtube-downloader-cli/save_history").expa
 save_hist = FileHistory(save_hist_path)
 
 
-def main() -> None:
-    print(f"youtube-downloader version {__version__}")
+USAGE_MARKUP = """
+SAMPLE : Provide inputs as per steps below
+    [white]STEP 1 : Please enter YouTube URL that you want to download from[/white]
+      Ex: [bold]? Enter YouTube URL: [yellow]https://youtube.com/?v=example1[/yellow][/bold]
+
+    [white]STEP 2 : Select action[/white]
+      Ex: [bold]? What do you want to download ?
+        [white]    1. Download audio only
+        [yellow]  » 2. Download video[/yellow] 
+        [white]    3. Download video with caption
+        [white]    4. Download audios from playlist
+        [white]    5. Download videos from playlist
+        [/bold]
+
+    Option 2 selected:
+      Ex: [bold]? What do you want to download ? [yellow]2. Download video[/yellow][/bold]
+
+    STEP 3 : Choose save location
+      Ex: [bold]? Where do you want to save ? [yellow]~/Videos/[/yellow][/bold]
+
+    STEP 4 : If option 3 is chosen in STEP 2, select captions to download here
+      Ex: [bold]? Select captions to download (Use arrow keys to move, <space> to select, <a> to toggle, <i> to invert)
+            [yellow]» ○ en ---- English[/yellow]
+            [white]  ○ ja ---- Japanese[/white]
+            [white]  ○ ko ---- Korean[/white]
+            [/bold]
+
+"""
+
+CMD_HELP_MARKUP = "[italic green]Run without option to start the app[/italic green]"
+
+
+class RichFormatter(click.HelpFormatter):
+    def __init__(
+        self,
+        indent_increment: int = 2,
+        width: int | None = None,
+        max_width: int | None = None,
+    ) -> None:
+        super().__init__(indent_increment, width, max_width)
+        self.buffer = io.StringIO()
+        self.console = Console(file=self.buffer, force_terminal=True)
+
+    def write(self, string: str) -> None:
+        self.console.print(string, end="")
+
+    def getvalue(self) -> str:
+        return self.buffer.getvalue()
+
+    def write_usage(self, prog: str, args: str = "", prefix: str | None = None) -> None:
+        super().write_usage(prog, args, prefix=(prefix or "USAGE : "))
+
+
+class RichHelpCmd(click.Command):
+    def get_help(self, ctx: click.Context) -> str:
+        formatter = RichFormatter(width=ctx.terminal_width, max_width=ctx.max_content_width)
+        self.format_help(ctx, formatter)
+        return formatter.getvalue().rstrip("\n")
+
+    def format_help(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
+        formatter.write(
+            "[bold]youtube-downloader-cli :penguin: CLI APP to download from YouTube[/bold]\n"
+        )
+
+        formatter.write_paragraph()
+        self.format_usage(ctx, formatter)
+        formatter.write(self.help)
+
+        formatter.write_paragraph()
+        self.format_options(ctx, formatter)
+
+        formatter.write(self.epilog)
+
+
+@click.command(cls=RichHelpCmd, help=CMD_HELP_MARKUP, epilog=USAGE_MARKUP)
+@click.help_option("-h", "--help", is_flag=True, is_eager=True)
+@click.option("-v", "--version", is_flag=True, is_eager=True, help="Show version and exit.")
+def main(version: bool) -> None:
+    print(f"youtube-downloader-cli v{__version__}")
+    if version:
+        return
 
     if not url_hist_path.parent.exists():
         url_hist_path.parent.mkdir(parents=True)
@@ -84,17 +169,9 @@ def main() -> None:
 
     save_dir = Path(answers.get("loc")).expanduser().resolve()
     url = answers.get("url")
+    opt = answers.get("opt")
 
-    if answers.get("opt").startswith("1."):  # Download audio only
-        get_audio(url, save_dir)
-    if answers.get("opt").startswith("2."):  # Donwload video
-        get_video(url, save_dir)
-    if answers.get("opt").startswith("3."):  # Download video with subtitle
-        get_video_srt(url, save_dir)
-    if answers.get("opt").startswith("4."):  # Download audios from playlist
-        get_audios(url, save_dir)
-    if answers.get("opt").startswith("5."):  # Download videos from playlist
-        get_videos(url, save_dir)
+    main_opts.get(opt)(url, save_dir)
 
 
 if __name__ == "__main__":
