@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 from urllib.error import URLError
 
 from pytubefix import Stream, YouTube
@@ -17,7 +18,7 @@ global _ATTEMPTS
 _ATTEMPTS = 1
 
 
-def initialize(url: str) -> tuple[Stream, str]:
+def initialize(url: str, **kwargs: Any) -> tuple[Stream, str]:
     global _ATTEMPTS
     try:
         yt = YouTube(
@@ -43,15 +44,15 @@ def initialize(url: str) -> tuple[Stream, str]:
         _error(err)
 
 
-def get_audio(url: str, save_dir: Path) -> None:
+def get_audio(url: str, save_dir: Path, **kwargs: Any) -> None:
     with progress:
         task_id = progress.custom_add_task(title=url, description="Downloading", start=False)
-        stream, defaultTitle = initialize(url)
+        stream, defaultTitle = initialize(url, **kwargs)
         progress.start_task(task_id)
         progress.update(task_id, description=defaultTitle, total=stream.filesize, completed=0)
         progress.update_mapping(stream.title, task_id)
         # print(f"Downloading {defaultTitle}")
-        download(stream, save_dir, defaultTitle)
+        download(stream, save_dir, defaultTitle, **kwargs)
 
 
 if __name__ == "__main__":

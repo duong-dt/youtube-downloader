@@ -37,6 +37,17 @@ main_opts: dict[str, Callable[[str, Path], None]] = {
 }
 # fmt: on
 
+# fmt: off
+res_opts: dict[str, int] = {
+    "SD - 480p"      : 480,
+    "HD - 720p"      : 720,
+    "FullHD - 1080p" : 1080,
+    "QHD - 1440p"    : 1440,
+    "4K - 2160p"     : 2160,
+    "best"           : -1,
+}
+# fmt: on
+
 
 url_hist_path = Path("~/.local/share/youtube-downloader-cli/url_history").expanduser()
 url_hist = FileHistory(url_hist_path)
@@ -171,7 +182,23 @@ def main(version: bool) -> None:
     url = answers.get("url")
     opt = answers.get("opt")
 
-    main_opts.get(opt)(url, save_dir)
+    if int(opt[0]) in (2, 3, 5):
+        # If downloading video
+        res_opt = questionary.select(
+            message="What is your prefered resolution ?",
+            choices=list(res_opts.keys()),
+            default="FullHD - 1080p",
+        ).ask()
+
+        if not res_opt:
+            return
+
+        max_res = res_opts.get(res_opt)
+    else:
+        # If downloading audio
+        max_res = -1
+
+    main_opts.get(opt)(url, save_dir, max_res=max_res)
 
 
 if __name__ == "__main__":

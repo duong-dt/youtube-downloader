@@ -118,7 +118,7 @@ def complete(stream: Stream, filepath: str) -> None:
             progress.remove_task(task_id)
 
 
-def download(stream: Stream, save_dir: Path, filename: str) -> None:
+def download(stream: Stream, save_dir: Path, filename: str, **kwargs: Any) -> None:
     stream.download(filename=filename, output_path=save_dir)
 
 
@@ -199,14 +199,14 @@ def ffmpeg_merge(audio: Path, video: Path, out: Path) -> bool:
 
 
 def download_video_wffmpeg(
-    audio_stream: Stream, video_stream: Stream, save_dir: Path, filename: str
+    audio_stream: Stream, video_stream: Stream, save_dir: Path, filename: str, **kwargs: Any
 ) -> None:
     with TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir:
         audio_file = Path(tmpdir) / f"ain.{audio_stream.subtype}"
         video_file = Path(tmpdir) / f"vin.{video_stream.subtype}"
 
-        download(audio_stream, Path(tmpdir), audio_file.name)
-        download(video_stream, Path(tmpdir), video_file.name)
+        download(audio_stream, Path(tmpdir), audio_file.name, **kwargs)
+        download(video_stream, Path(tmpdir), video_file.name, **kwargs)
 
         if ffmpeg_merge(audio_file, video_file, save_dir / filename):
             print(f"Successfully downloaded {filename}")
