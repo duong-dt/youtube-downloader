@@ -27,7 +27,9 @@ def initialize(url: str) -> tuple[Stream, str]:
             on_progress_callback=progress_update,
         )
         stream = yt.streams.get_audio_only()
-        defaultTitle = getDefaultTitle(stream)
+        defaultTitle = getDefaultTitle(
+            yt, subtype=Path(stream.default_filename).suffix.removeprefix(".")
+        )
 
         return stream, defaultTitle
     except URLError:

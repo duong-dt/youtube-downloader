@@ -29,7 +29,7 @@ def initialize(url: str) -> tuple[Stream, str]:
             on_progress_callback=progress_update,
         )
         stream = yt.streams.filter(progressive=True).get_highest_resolution()
-        defaultTitle = getDefaultTitle(stream)
+        defaultTitle = getDefaultTitle(yt, subtype=stream.subtype)
 
         return stream, defaultTitle
     except URLError:
@@ -67,8 +67,8 @@ def initialize_wffmpeg(url: str) -> tuple[Stream, Stream, str]:
             on_progress_callback=progress_update,
         )
         audio_stream = yt.streams.get_audio_only()
-        video_stream = get_resolution_upto(yt.streams.filter(only_video=True, subtype="mp4"))
-        defaultTitle = getDefaultTitle(video_stream)
+        video_stream = get_resolution_upto(yt.streams.filter(only_video=True))
+        defaultTitle = getDefaultTitle(yt, video_stream.subtype)
 
         return audio_stream, video_stream, defaultTitle
     except URLError:

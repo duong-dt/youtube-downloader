@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 from time import sleep
 from typing import Any
 
-from pytubefix import Stream
+from pytubefix import Stream, YouTube
 from rich.console import Console
 from rich.progress import (
     BarColumn,
@@ -127,21 +127,31 @@ def _error(_exception: Exception) -> None:
     sys.exit(1)
 
 
-def getDefaultTitle(stream: Stream) -> str:
+def getDefaultTitle(y: YouTube | Stream, subtype: str = "mp4") -> str:
     """
     Create safe file name by removing special character
     from YouTube video title
     """
 
-    title = stream.default_filename
+    if isinstance(y, YouTube):
+        title = (
+            y.vid_info.get("microformat", {})
+            .get("playerMicroformatRenderer", {})
+            .get("title", {})
+            .get("simpleText", None)
+            or y.title
+        ) + f".{subtype}"
 
-    special_char = [
-        x for x in title if unicodedata.category(x)[0] not in "LN" and x not in "_-()[]! "
-    ]
-    for c in special_char:
-        title.replace(c, "")
+    if isinstance(y, Stream):
+        title = y.default_filename
 
-    return title
+    return title.translate(
+        {
+            ord(x): ""
+            for x in title
+            if unicodedata.category(x)[0] not in "LN" and x not in "_-()[]! ."
+        }
+    )
 
 
 def check_ffmpeg() -> bool:
@@ -169,7 +179,7 @@ def ffmpeg_merge(audio: Path, video: Path, out: Path) -> bool:
 
     try:
         # fmt: off
-        subprocess.check_call(
+        subprocess.check_output(
             [
                 "ffmpeg", "-y",
                 "-i", str(audio.resolve()),
@@ -178,13 +188,13 @@ def ffmpeg_merge(audio: Path, video: Path, out: Path) -> bool:
                 "-loglevel", "warning",
                 str(out.resolve()),
             ],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT,
         )
         # fmt: on
         return True
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
         print(f"ffmpeg convert failed for {out.name}", file=sys.stderr)
+        print(f"{e.output}", file=sys.stderr)
         return False
 
 
