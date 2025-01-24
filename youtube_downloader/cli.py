@@ -9,8 +9,11 @@ import questionary
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
 from rich.console import Console
+from rich.highlighter import ReprHighlighter
+from rich.markdown import Markdown
+from rich.theme import Theme
 
-from youtube_downloader import __version__
+from youtube_downloader import __version__, scriptDir
 from youtube_downloader.helpers import (
     get_audio,
     get_audios,
@@ -54,37 +57,72 @@ url_hist = FileHistory(url_hist_path)
 save_hist_path = Path("~/.local/share/youtube-downloader-cli/save_history").expanduser()
 save_hist = FileHistory(save_hist_path)
 
+if scriptDir.joinpath("README").exists():
+    README_MD = scriptDir.joinpath("README").read_text()
+else:
+    README_MD = scriptDir.parent.joinpath("README.md").read_text()
 
 USAGE_MARKUP = """
 SAMPLE : Provide inputs as per steps below
-    [white]STEP 1 : Please enter YouTube URL that you want to download from[/white]
+    [not underline green]STEP 1[/not underline green] : Please enter YouTube URL that you want to download from
       Ex: [bold]? Enter YouTube URL: [yellow]https://youtube.com/?v=example1[/yellow][/bold]
 
-    [white]STEP 2 : Select action[/white]
-      Ex: [bold]? What do you want to download ?
-        [white]    1. Download audio only
-        [yellow]  » 2. Download video[/yellow] 
-        [white]    3. Download video with caption
-        [white]    4. Download audios from playlist
-        [white]    5. Download videos from playlist
+    [not underline green]STEP 2[/not underline green] : Select action
+      Ex: [bold]? What do you want to download ? (Use arrow keys)
+          [not underline white]1. Download audio only [/not underline white]
+        » [not underline reverse white]2. Download video [/not underline reverse white] 
+          [not underline white]3. Download video with caption [/not underline white]
+          [not underline white]4. Download audios from playlist [/not underline white]
+          [not underline white]5. Download videos from playlist [/not underline white]
         [/bold]
 
     Option 2 selected:
-      Ex: [bold]? What do you want to download ? [yellow]2. Download video[/yellow][/bold]
+      Ex: [bold]? What do you want to download ? [not underline yellow]2. Download video[/not underline yellow][/bold]
 
-    STEP 3 : Choose save location
+    [not underline green]STEP 3[/not underline green] : Choose save location
       Ex: [bold]? Where do you want to save ? [yellow]~/Videos/[/yellow][/bold]
 
-    STEP 4 : If option 3 is chosen in STEP 2, select captions to download here
+    [not underline green]STEP 4[/not underline green] : If option 2, 3, or 5 is chosen in Step 2, please select a preferred resolution for video downloading.
+      Ex: [bold]? What is your prefered resolution ? (Use arrow keys)
+          [white]SD - 480p[/white]
+          [white]HD - 720p[/white]
+        » [reverse white]FullHD - 1080p[/reverse white]
+          [white]QHD - 1440p[/white]
+          [white]4K - 2160p[/white]
+          [white]best[/white]
+        [/bold]
+
+    [not underline green]STEP 5[/not underline green] : If option 3 is chosen in STEP 2, select captions to download here
       Ex: [bold]? Select captions to download (Use arrow keys to move, <space> to select, <a> to toggle, <i> to invert)
-            [yellow]» ○ en ---- English[/yellow]
-            [white]  ○ ja ---- Japanese[/white]
-            [white]  ○ ko ---- Korean[/white]
-            [/bold]
+            » [reverse white]● en ---- English[/reverse white]
+              [white]○ ja ---- Japanese[/white]
+              [white]○ ko ---- Korean[/white]
+          [/bold]
 
 """
 
 CMD_HELP_MARKUP = "[italic green]Run without option to start the app[/italic green]"
+
+
+HelpTheme = Theme(
+    styles={
+        "repr.switch": "blue",
+        "repr.option": "green",
+        "repr.number": "bright_blue underline",
+        "repr.tag_name": "default",
+        "rule.line": "bold yellow",
+        "markdown.hr": "bold yellow",
+        "markdown.h4": "reverse",
+    }
+)
+
+
+class RichCommandHighlighter(ReprHighlighter):
+    highlights = (
+        *ReprHighlighter.highlights,
+        r"(^|\W)(?P<switch>\-\w+)(?![a-zA-Z0-9])",
+        r"(^|\W)(?P<option>\-\-[\w\-]+)(?![a-zA-Z0-9])",
+    )
 
 
 class RichFormatter(click.HelpFormatter):
@@ -96,7 +134,12 @@ class RichFormatter(click.HelpFormatter):
     ) -> None:
         super().__init__(indent_increment, width, max_width)
         self.buffer = io.StringIO()
-        self.console = Console(file=self.buffer, force_terminal=True)
+        self.console = Console(
+            file=self.buffer,
+            force_terminal=True,
+            highlighter=RichCommandHighlighter(),
+            theme=HelpTheme,
+        )
 
     def write(self, string: str) -> None:
         self.console.print(string, end="")
@@ -126,15 +169,29 @@ class RichHelpCmd(click.Command):
         formatter.write_paragraph()
         self.format_options(ctx, formatter)
 
-        formatter.write(self.epilog)
 
-
-@click.command(cls=RichHelpCmd, help=CMD_HELP_MARKUP, epilog=USAGE_MARKUP)
+@click.command(cls=RichHelpCmd, help=CMD_HELP_MARKUP, no_args_is_help=False)
 @click.help_option("-h", "--help", is_flag=True, is_eager=True)
 @click.option("-v", "--version", is_flag=True, is_eager=True, help="Show version and exit.")
-def main(version: bool) -> None:
-    print(f"youtube-downloader-cli v{__version__}")
+@click.option("-m", "--manual", is_flag=True, is_eager=True, help="Show manual page and exit.")
+@click.pass_context
+def main(ctx: click.Context, version: bool, manual: bool) -> None:
     if version:
+        print(f"youtube-downloader-cli v{__version__}")
+        return
+
+    if manual:
+        console = Console(
+            force_terminal=True,
+            highlighter=RichCommandHighlighter(),
+            theme=HelpTheme,
+        )
+
+        console.print(Markdown(README_MD))
+        console.rule()
+        print(main.get_help(ctx))
+        console.print(USAGE_MARKUP)
+
         return
 
     if not url_hist_path.parent.exists():

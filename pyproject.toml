@@ -40,7 +40,10 @@ python-preference = "only-managed"
 version = { file = ["youtube_downloader/VERSION"] }
 
 [tool.setuptools.package-data]
-file = ["VERSION"]
+youtube_downloader = [
+    "VERSION",
+    "README",  # README is copied to package directory during make
+]
 
 [tool.ruff]
 line-length = 99

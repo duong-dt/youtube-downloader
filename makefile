@@ -19,7 +19,8 @@ rebuild: clean init-build build
 build: format build-uv
 
 build-uv:
-	uv build --refresh
+	cp README.md youtube_downloader/README
+	uv build --refresh ; c=$$? ; rm youtube_downloader/README ; exit $$c
 
 init: clean init-tool init-build init-upload
 
