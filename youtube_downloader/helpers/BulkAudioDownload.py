@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import Any
 from urllib.error import URLError
 
 from pytubefix import Playlist
@@ -30,29 +31,29 @@ def initialize(url: str) -> Iterable[str]:
         _error(err)
 
 
-def download(urls: Iterable[str], save_dir: Path) -> None:
-    def run(url: str) -> None:
+def download(urls: Iterable[str], save_dir: Path, **kwargs: Any) -> None:
+    def run(url: str, **kwargs: Any) -> None:
         task_id = progress.custom_add_task(
             title=url,
             description="Downloading ...",
             total=0,
             completed=0,
         )
-        stream, defaultTitle = init_one(url)
+        stream, defaultTitle = init_one(url, **kwargs)
         progress.update(task_id, description=stream.title, total=stream.filesize)
         progress.update_mapping(stream.title, task_id)
-        download_one(stream, save_dir, defaultTitle)
+        download_one(stream, save_dir, defaultTitle, **kwargs)
 
     with progress:
         with ThreadPoolExecutor(max_workers=4) as pool:
             for url in urls:
-                pool.submit(run, url)
+                pool.submit(run, url, **kwargs)
                 wait(0.5)
 
 
-def get_audios(url: str, save_dir: Path) -> None:
+def get_audios(url: str, save_dir: Path, **kwargs: Any) -> None:
     urls = initialize(url)
-    download(urls, save_dir)
+    download(urls, save_dir, **kwargs)
 
 
 if __name__ == "__main__":
