@@ -30,8 +30,7 @@ build: format build-uv
 
 [private]
 build-uv:
-	cp README.md youtube_downloader/README
-	uv build --refresh ; c=$? ; rm youtube_downloader/README ; exit $c
+	uv build --refresh
 
 # Install all dependencies for development
 [group('initialize')]
@@ -58,9 +57,9 @@ clean:
 upload target: rebuild
 	#!/usr/bin/bash
 	if [[ {{target}} == "test" ]]; then
-		uvx uv-publish --repository testpypi
+		set -x ; uvx uv-publish --repository testpypi
 	elif [[ {{target}} == "pypi" ]]; then
-		uvx uv-publish --repository pypi
+		set -x ; uvx uv-publish --repository pypi
 	fi
 
 # Install package from TestPyPI (target=test) or PyPI (target=PyPI - default)
@@ -68,9 +67,9 @@ upload target: rebuild
 install target="pypi":
 	#!/usr/bin/bash
 	if [[ {{target}} == "test" ]]; then
-		uv tool install {{PACKAGE}} -U --reinstall --index {{TESTPYPI_INDEX}} --index-url {{PYPI_INDEX}}
+		set -x ; uv tool install {{PACKAGE}} -U --reinstall --index {{TESTPYPI_INDEX}} --index-url {{PYPI_INDEX}}
 	elif [[ {{target}} == "pypi" ]]; then
-		uv tool install {{PACKAGE}} -U --reinstall
+		set -x ; uv tool install {{PACKAGE}} -U --reinstall
 	fi
 
 # Show bump version
@@ -89,6 +88,7 @@ make-testing: rebuild
 	#!/usr/bin/bash
 	source $(which virtualenvwrapper.sh)
 	VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+	echo mkvirtualenv -i {{WHL}} --clear yt-dl-cli-testing 
 	mkvirtualenv -i {{WHL}} --clear yt-dl-cli-testing
 
 # Remove created virtualenv
@@ -97,5 +97,6 @@ clean-testing:
 	#!/usr/bin/bash
 	source $(which virtualenvwrapper.sh)
 	VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+	echo rmvirtualenv yt-dl-cli-testing
 	rmvirtualenv yt-dl-cli-testing
 
