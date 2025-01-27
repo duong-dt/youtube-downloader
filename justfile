@@ -40,6 +40,7 @@ init: clean init-dev install-tool
 init-dev:
 	uv sync --refresh --extra dev --no-install-project
 
+[private]
 install-tool:
 	uv tool install ruff -U --refresh
 	uv tool install bump-my-version -U --refresh
@@ -82,7 +83,7 @@ show-bump:
 bump *ARGS:
 	uvx bump-my-version bump {{ARGS}}
 
-# Make virtualenv with package installed
+# Create virtualenv with package installed
 [group('local-testing')]
 make-testing: rebuild
 	#!/usr/bin/bash
@@ -93,7 +94,7 @@ make-testing: rebuild
 
 # Remove created virtualenv
 [group('local-testing')]
-clean-testing:
+remove-testing:
 	#!/usr/bin/bash
 	source $(which virtualenvwrapper.sh)
 	VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
