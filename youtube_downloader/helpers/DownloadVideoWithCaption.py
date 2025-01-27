@@ -29,10 +29,12 @@ def select_captions(captions: CaptionQuery) -> Iterable[Caption] | None:
     if len(captions) == 0:
         print("No caption available")
     elif len(captions) > 1:
+        max_code_len = max(map(len, captions.lang_code_index.keys()))
         caption_choices = questionary.checkbox(
             message="Select captions to download",
             choices=[
-                f"{code} ---- {captions[code].name}" for code in captions.lang_code_index.keys()
+                f"{code}{' ' * (max_code_len - len(code))} ---- {captions[code].name}"
+                for code in captions.lang_code_index.keys()
             ],
         ).ask()
 
