@@ -211,6 +211,7 @@ def main(ctx: click.Context, version: bool, manual: bool) -> None:
     answers = questionary.form(
         url=questionary.text(
             message="Enter YouTube URL:",
+            bottom_toolbar="Use <up> & <down> for history",
             default=txt,
             validate=url_validate,
             enable_history_search=True,
@@ -220,6 +221,7 @@ def main(ctx: click.Context, version: bool, manual: bool) -> None:
         opt=questionary.select(message="What do you want to download ?", choices=main_opts),
         loc=questionary.path(
             message="Where do you want to save ?",
+            bottom_toolbar="Use <up> & <down> for history",
             default=str(Path.cwd()),
             only_directories=True,
             validate=lambda p: (
