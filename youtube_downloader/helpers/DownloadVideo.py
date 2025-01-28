@@ -12,6 +12,7 @@ from youtube_downloader.helpers.util import (
     download,
     download_video_wffmpeg,
     getDefaultTitle,
+    metadata,
     progress,
     progress_update,
 )
@@ -31,6 +32,7 @@ def initialize(url: str, **kwargs: Any) -> tuple[Stream, str]:
         )
         stream = get_resolution_upto(yt.streams.filter(progressive=True), **kwargs)
         defaultTitle = getDefaultTitle(yt, subtype=stream.subtype)
+        metadata.add_title(url, Path(defaultTitle).stem)
 
         return stream, defaultTitle
     except URLError:
@@ -69,6 +71,7 @@ def initialize_wffmpeg(url: str, **kwargs: Any) -> tuple[Stream, Stream, str]:
         )
 
         audio_stream, video_stream, defaultTitle = _init_ffmpeg(yt, **kwargs)
+        metadata.add_title(url, Path(defaultTitle).stem)
 
         return audio_stream, video_stream, defaultTitle
     except URLError:
@@ -91,7 +94,7 @@ def _init_ffmpeg(yt: YouTube, **kwargs: Any) -> tuple[Stream, Stream, str]:
 
 
 def get_video(url: str, save_dir: Path, **kwargs: Any) -> None:
-    with progress:
+    with progress, metadata:
         task_id = progress.custom_add_task(
             title=url,
             description="Downloading",

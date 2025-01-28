@@ -8,7 +8,7 @@ from pytubefix import Playlist
 from pytubefix.exceptions import PytubeFixError as PytubeError
 
 from youtube_downloader.helpers.DownloadAudio import initialize as init_one
-from youtube_downloader.helpers.util import _error, progress, wait
+from youtube_downloader.helpers.util import _error, getDefaultTitle, metadata, progress, wait
 from youtube_downloader.helpers.util import download as download_one
 
 global _ATTEMPTS
@@ -19,6 +19,7 @@ def initialize(url: str) -> Iterable[str]:
     global _ATTEMPTS
     try:
         playlist = Playlist(url, client="WEB")
+        metadata.add_title(url, Path(getDefaultTitle(playlist)).stem)
         return playlist.video_urls
     except URLError:
         if _ATTEMPTS < 4:
@@ -52,8 +53,9 @@ def download(urls: Iterable[str], save_dir: Path, **kwargs: Any) -> None:
 
 
 def get_audios(url: str, save_dir: Path, **kwargs: Any) -> None:
-    urls = initialize(url)
-    download(urls, save_dir, **kwargs)
+    with metadata:
+        urls = initialize(url)
+        download(urls, save_dir, **kwargs)
 
 
 if __name__ == "__main__":

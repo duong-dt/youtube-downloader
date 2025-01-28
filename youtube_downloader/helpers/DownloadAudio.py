@@ -10,6 +10,7 @@ from youtube_downloader.helpers.util import (
     complete,
     download,
     getDefaultTitle,
+    metadata,
     progress,
     progress_update,
 )
@@ -31,6 +32,7 @@ def initialize(url: str, **kwargs: Any) -> tuple[Stream, str]:
         defaultTitle = getDefaultTitle(
             yt, subtype=Path(stream.default_filename).suffix.removeprefix(".")
         )
+        metadata.add_title(url, Path(defaultTitle).stem)
 
         return stream, defaultTitle
     except URLError:
@@ -45,7 +47,7 @@ def initialize(url: str, **kwargs: Any) -> tuple[Stream, str]:
 
 
 def get_audio(url: str, save_dir: Path, **kwargs: Any) -> None:
-    with progress:
+    with progress, metadata:
         task_id = progress.custom_add_task(title=url, description="Downloading", start=False)
         stream, defaultTitle = initialize(url, **kwargs)
         progress.start_task(task_id)

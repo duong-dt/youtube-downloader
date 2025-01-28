@@ -1,3 +1,4 @@
+import json
 import sys
 import unicodedata
 from pathlib import Path
@@ -5,7 +6,7 @@ from tempfile import TemporaryDirectory
 from time import sleep
 from typing import Any
 
-from pytubefix import Stream, YouTube
+from pytubefix import Playlist, Stream, YouTube
 from rich.console import Console
 from rich.progress import (
     BarColumn,
@@ -20,6 +21,8 @@ from rich.progress import (
     TotalFileSizeColumn,
 )
 from rich.table import Column
+
+APPDATA = Path("~/.local/share/youtube-downloader-cli/").expanduser()
 
 
 class CustomProgress(Progress):
@@ -127,7 +130,7 @@ def _error(_exception: Exception) -> None:
     sys.exit(1)
 
 
-def getDefaultTitle(y: YouTube | Stream, subtype: str = "mp4") -> str:
+def getDefaultTitle(y: YouTube | Stream | Playlist, subtype: str = "mp4") -> str:
     """
     Create safe file name by removing special character
     from YouTube video title
@@ -144,6 +147,9 @@ def getDefaultTitle(y: YouTube | Stream, subtype: str = "mp4") -> str:
 
     if isinstance(y, Stream):
         title = y.default_filename
+
+    if isinstance(y, Playlist):
+        title = y.title
 
     return title.translate(
         {
@@ -201,7 +207,9 @@ def ffmpeg_merge(audio: Path, video: Path, out: Path) -> bool:
 def download_video_wffmpeg(
     audio_stream: Stream, video_stream: Stream, save_dir: Path, filename: str, **kwargs: Any
 ) -> None:
-    with TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir:
+    import time
+
+    with TemporaryDirectory(ignore_cleanup_errors=True, prefix=str(time.time_ns())) as tmpdir:
         audio_file = Path(tmpdir) / f"ain.{audio_stream.subtype}"
         video_file = Path(tmpdir) / f"vin.{video_stream.subtype}"
 
@@ -214,3 +222,63 @@ def download_video_wffmpeg(
 
 def wait(sec: float) -> None:
     sleep(sec)
+
+
+class YouTubeMetadataCache:
+    def __init__(self, p: Path) -> None:
+        if not p.exists():
+            if not p.parent.exists():
+                p.parent.mkdir(parents=True)
+            p.touch()
+        self._filepath = p
+        self._loaded = False
+
+    @property
+    def urls(self) -> list[str]:
+        if (not self._loaded) or (not hasattr(self, "_urls")):
+            self._load()
+            self._urls = [url for url in self._json.keys()]
+        return self._urls
+
+    @property
+    def titles(self) -> dict:
+        if (not self._loaded) or (not hasattr(self, "_titles")):
+            self._load()
+            self._titles = {url: self._json.get(url, {}).get("title", "") for url in self._json}
+
+        return self._titles
+
+    def _load(self) -> None:
+        if not self._loaded:
+            self._cache = self._filepath.read_bytes()
+            if self._cache:
+                self._json = json.loads(self._cache)
+            else:
+                self._json = {}
+            self._loaded = True
+
+    def add_title(self, url: str, title: str) -> None:
+        if not self._loaded:
+            self._load()
+        self._json[url] = {}
+        self._json[url]["title"] = title
+        if not self._titles:
+            self._titles = {}
+        self._titles[url] = title
+
+    def _store(self) -> None:
+        if not self._loaded:
+            return
+
+        self._filepath.write_text(json.dumps(self._json))
+
+    def __enter__(self):  # noqa: ANN204
+        if not self._loaded:
+            self._load()
+        return self
+
+    def __exit__(self, ext, val, tb) -> None:  # noqa: ANN001
+        self._store()
+
+
+metadata = YouTubeMetadataCache(APPDATA / "metadata")

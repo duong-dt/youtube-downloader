@@ -1,5 +1,5 @@
 import io
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -7,7 +7,10 @@ import click
 import pyperclip
 import questionary
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from prompt_toolkit.history import FileHistory
+from prompt_toolkit.completion import CompleteEvent, Completer, Completion, DeduplicateCompleter
+from prompt_toolkit.document import Document
+from prompt_toolkit.history import FileHistory, History
+from prompt_toolkit.shortcuts import CompleteStyle
 from rich.console import Console
 from rich.highlighter import ReprHighlighter
 from rich.markdown import Markdown
@@ -15,11 +18,14 @@ from rich.theme import Theme
 
 from youtube_downloader import __version__, scriptDir
 from youtube_downloader.helpers import (
+    APPDATA,
+    YouTubeMetadataCache,
     get_audio,
     get_audios,
     get_video,
     get_video_srt,
     get_videos,
+    metadata,
 )
 
 
@@ -52,9 +58,32 @@ res_opts: dict[str, int] = {
 # fmt: on
 
 
-url_hist_path = Path("~/.local/share/youtube-downloader-cli/url_history").expanduser()
+class HistoryCompleter(Completer):
+    def __init__(self, history: History, metadata: YouTubeMetadataCache) -> None:
+        self.history = history
+        self.metadata = metadata
+        self._merged_data = sorted(
+            (
+                *history.load_history_strings(),
+                *metadata.urls,
+            ),
+            key=lambda x: metadata.titles.get(x, "unknown"),
+        )
+
+    def get_completions(self, document: Document, event: CompleteEvent) -> Iterable[Completion]:
+        text = document.text
+        for item in self._merged_data:
+            if text in item:
+                yield Completion(
+                    text=item,
+                    start_position=-len(text),
+                    display_meta=self.metadata.titles.get(item, "unknown"),
+                )
+
+
+url_hist_path = APPDATA / "url_history"
 url_hist = FileHistory(url_hist_path)
-save_hist_path = Path("~/.local/share/youtube-downloader-cli/save_history").expanduser()
+save_hist_path = APPDATA / "save_history"
 save_hist = FileHistory(save_hist_path)
 
 if scriptDir.joinpath("README").exists():
@@ -194,10 +223,12 @@ def main(ctx: click.Context, version: bool, manual: bool) -> None:
 
         return
 
-    if not url_hist_path.parent.exists():
-        url_hist_path.parent.mkdir(parents=True)
-    url_hist_path.touch()
-    save_hist_path.touch()
+    if not APPDATA.exists():
+        APPDATA.mkdir(parents=True)
+    if not url_hist_path.exists():
+        url_hist_path.touch()
+    if not save_hist_path.exists():
+        save_hist_path.touch()
 
     # Get URL from clipboard if available
     if not pyperclip.is_available():
@@ -211,12 +242,14 @@ def main(ctx: click.Context, version: bool, manual: bool) -> None:
     answers = questionary.form(
         url=questionary.text(
             message="Enter YouTube URL:",
-            bottom_toolbar="Use <up> & <down> for history",
+            bottom_toolbar="Use <tab> for history",
             default=txt,
             validate=url_validate,
-            enable_history_search=True,
+            enable_history_search=False,
             history=url_hist,
             auto_suggest=AutoSuggestFromHistory(),
+            completer=DeduplicateCompleter(HistoryCompleter(url_hist, metadata)),
+            complete_style=CompleteStyle.MULTI_COLUMN,
         ),
         opt=questionary.select(message="What do you want to download ?", choices=main_opts),
         loc=questionary.path(
