@@ -133,6 +133,8 @@ def get_video(url: str, save_dir: Path, **kwargs: Any) -> None:
                 download_video_wffmpeg(
                     audio_stream, video_stream, save_dir, defaultTitle, **kwargs
                 )
+            else:
+                progress.remove_task(task_id)
 
 
 if __name__ == "__main__":

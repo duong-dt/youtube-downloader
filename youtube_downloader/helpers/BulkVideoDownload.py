@@ -78,7 +78,7 @@ def download_wffmpeg(videos: Iterable[str], save_dir: Path, **kwargs: Any) -> No
             total=0,
             completed=0,
         )
-        audio_stream, video_stream, defaultTitle = init_one_ffmpeg(video, **kwargs)
+        audio_stream, video_stream, defaultTitle = init_one_ffmpeg(url, **kwargs)
         if not save_dir.joinpath(defaultTitle).exists():
             print(f"Downloading resolution {video_stream.resolution} for {defaultTitle}")
             progress.update(
@@ -90,6 +90,8 @@ def download_wffmpeg(videos: Iterable[str], save_dir: Path, **kwargs: Any) -> No
             progress.update_mapping(audio_stream.title, task_id)
             progress.update_mapping(video_stream.title, task_id)
             download_one_ffmpeg(audio_stream, video_stream, save_dir, defaultTitle, **kwargs)
+        else:
+            progress.remove_task(task_id)
 
     with progress:
         with ThreadPoolExecutor(max_workers=4) as pool:

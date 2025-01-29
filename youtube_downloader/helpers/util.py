@@ -136,6 +136,9 @@ def getDefaultTitle(y: YouTube | Stream | Playlist, subtype: str = "mp4") -> str
     from YouTube video title
     """
 
+    if isinstance(y, Playlist):
+        return f"Playlist {y.title}"
+
     if isinstance(y, YouTube):
         title = (
             y.vid_info.get("microformat", {})
@@ -147,9 +150,6 @@ def getDefaultTitle(y: YouTube | Stream | Playlist, subtype: str = "mp4") -> str
 
     if isinstance(y, Stream):
         title = y.default_filename
-
-    if isinstance(y, Playlist):
-        title = y.title
 
     return title.translate(
         {
@@ -207,9 +207,7 @@ def ffmpeg_merge(audio: Path, video: Path, out: Path) -> bool:
 def download_video_wffmpeg(
     audio_stream: Stream, video_stream: Stream, save_dir: Path, filename: str, **kwargs: Any
 ) -> None:
-    import time
-
-    with TemporaryDirectory(ignore_cleanup_errors=True, prefix=str(time.time_ns())) as tmpdir:
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir:
         audio_file = Path(tmpdir) / f"ain.{audio_stream.subtype}"
         video_file = Path(tmpdir) / f"vin.{video_stream.subtype}"
 
