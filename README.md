@@ -9,16 +9,37 @@
    * From a video or from a playlist
 
 
-# Installation
-1. Using `pip`
+# Installation & Upgrade
+1. To install
+* Using `pip`
    ```console
    pip install youtube-downloader-cli
    ```
 
-2. Using `uv`
+* Using `uv`
    ```console
    uv tool install youtube-downloader-cli
    ```
+
+* Using `uvx` to use this tool directly without install 
+  ```console
+  uvx youtube-downloader-cli
+  ```
+
+2. To upgrade
+* Using `pip`
+  ```console
+  pip install --upgrade youtube-downloader-cli
+  ```
+* Using `uv`
+  ```console
+  uv tool install --upgrade --reinstall youtube-downloader-cli
+  ```
+
+* Using `uvx`
+  ```console
+  uvx youtube-downloader-cli@latest
+  ```
 
 # CLI Application
 
@@ -38,7 +59,7 @@ Available options:
 
 #### Step 4. Choose preferred resolution for video downloading
 
-If option 2, 3, or 5 is chosen in Step 2, please select a preferred resolution for video downloading.
+If option 2, 3, or 5 is chosen in ***Step 2***, please select a preferred resolution for video downloading.
 
 Available options:
 
@@ -53,7 +74,7 @@ Video with highest resolution, but not higher than user's choice (unless '**best
 
 #### Step 5. Choose captions to download
 
-If option 3 is chosen in Step 2, please select which caption(s) to be downloaded. User will only be prompted if more than one caption is available for selected video.
+If option 3 is chosen in ***Step 2***, please select which caption(s) to be downloaded. User will only be prompted if more than one caption is available for selected video.
 
 ---
 
@@ -61,7 +82,7 @@ Note: If PyTubeFix failed to connect to YouTube, it may need to be upgraded to t
 
 Using `pip`: `pip install --upgrade pytubefix`.
 
-Or using `uv`: `uv install youtube-downloader-cli --upgrade --reinstall`. 
+Or using `uv`: `uv install --upgrade --reinstall youtube-downloader-cli`. 
 
 # Dependencies
 1. For CLI Application

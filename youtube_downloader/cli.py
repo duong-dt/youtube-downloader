@@ -118,15 +118,13 @@ SAMPLE : Provide inputs as per steps below
         » [reverse white]FullHD - 1080p[/reverse white]
           [white]QHD - 1440p[/white]
           [white]4K - 2160p[/white]
-          [white]best[/white]
-        [/bold]
+          [white]best[/white][/bold]
 
     [not underline green]STEP 5[/not underline green] : If option 3 is chosen in STEP 2, select captions to download here
       Ex: [bold]? Select captions to download (Use arrow keys to move, <space> to select, <a> to toggle, <i> to invert)
             » [reverse white]● en ---- English[/reverse white]
               [white]○ ja ---- Japanese[/white]
-              [white]○ ko ---- Korean[/white]
-          [/bold]
+              [white]○ ko ---- Korean[/white][/bold]
 
 """
 
@@ -219,7 +217,7 @@ def main(ctx: click.Context, version: bool, manual: bool) -> None:
         console.print(Markdown(README_MD))
         console.rule()
         print(main.get_help(ctx))
-        console.print(USAGE_MARKUP)
+        console.print(USAGE_MARKUP.rstrip())
 
         return
 
