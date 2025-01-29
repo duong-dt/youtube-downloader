@@ -15,6 +15,7 @@ from youtube_downloader.helpers.util import (
     download,
     download_video_wffmpeg,
     getDefaultTitle,
+    metadata,
     progress,
     progress2,
     progress_update,
@@ -60,6 +61,7 @@ def initialize(url: str, **kwargs: Any) -> tuple[Stream, Iterable[Caption] | Non
         )
         stream = get_resolution_upto(yt.streams.filter(progressive=True), **kwargs)
         defaultTitle = getDefaultTitle(yt, subtype=stream.subtype)
+        metadata.add_title(url, Path(defaultTitle).stem)
         captions = select_captions(yt.captions)
 
         return stream, captions, defaultTitle
@@ -86,6 +88,7 @@ def initialize_wffmpeg(
             on_progress_callback=progress_update,
         )
         audio_stream, video_stream, defaultTitle = _init_ffmpeg(yt, **kwargs)
+        metadata.add_title(url, Path(defaultTitle).stem)
         captions = select_captions(yt.captions)
 
         return audio_stream, video_stream, captions, defaultTitle
@@ -115,7 +118,7 @@ def get_video_srt(url: str, save_dir: Path, **kwargs: Any) -> None:
     if not captions:
         return
 
-    with progress:
+    with progress, metadata:
         if not save_dir.joinpath(defaultTitle).exists():
             print(f"Downloading resolution {video_stream.resolution} for {defaultTitle}")
             if not ffmpeg_available:

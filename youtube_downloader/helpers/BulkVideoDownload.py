@@ -16,6 +16,8 @@ from youtube_downloader.helpers.DownloadVideo import (
 from youtube_downloader.helpers.util import (
     _error,
     check_ffmpeg,
+    getDefaultTitle,
+    metadata,
     progress,
     wait,
 )
@@ -34,6 +36,7 @@ def initialize(url: str) -> Iterable[str]:
     global _ATTEMPTS
     try:
         playlist = Playlist(url, client="WEB")
+        metadata.add_title(url, Path(getDefaultTitle(playlist)).stem)
         return playlist.video_urls
     except URLError:
         if _ATTEMPTS < 4:
@@ -64,6 +67,7 @@ def download(urls: Iterable[str], save_dir: Path, **kwargs: Any) -> None:
         with ThreadPoolExecutor(max_workers=4) as pool:
             for url in urls:
                 pool.submit(run, url, **kwargs)
+                wait(0.5)
 
 
 def download_wffmpeg(videos: Iterable[str], save_dir: Path, **kwargs: Any) -> None:
@@ -74,7 +78,7 @@ def download_wffmpeg(videos: Iterable[str], save_dir: Path, **kwargs: Any) -> No
             total=0,
             completed=0,
         )
-        audio_stream, video_stream, defaultTitle = init_one_ffmpeg(video, **kwargs)
+        audio_stream, video_stream, defaultTitle = init_one_ffmpeg(url, **kwargs)
         if not save_dir.joinpath(defaultTitle).exists():
             print(f"Downloading resolution {video_stream.resolution} for {defaultTitle}")
             progress.update(
@@ -86,6 +90,8 @@ def download_wffmpeg(videos: Iterable[str], save_dir: Path, **kwargs: Any) -> No
             progress.update_mapping(audio_stream.title, task_id)
             progress.update_mapping(video_stream.title, task_id)
             download_one_ffmpeg(audio_stream, video_stream, save_dir, defaultTitle, **kwargs)
+        else:
+            progress.remove_task(task_id)
 
     with progress:
         with ThreadPoolExecutor(max_workers=4) as pool:
@@ -95,11 +101,12 @@ def download_wffmpeg(videos: Iterable[str], save_dir: Path, **kwargs: Any) -> No
 
 
 def get_videos(url: str, save_dir: Path, **kwargs: Any) -> None:
-    videos = initialize(url)
-    if not check_ffmpeg():
-        download(videos, save_dir, **kwargs)
-    else:
-        download_wffmpeg(videos, save_dir, **kwargs)
+    with metadata:
+        videos = initialize(url)
+        if not check_ffmpeg():
+            download(videos, save_dir, **kwargs)
+        else:
+            download_wffmpeg(videos, save_dir, **kwargs)
 
 
 if __name__ == "__main__":
