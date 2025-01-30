@@ -120,7 +120,7 @@ def get_video_srt(url: str, save_dir: Path, **kwargs: Any) -> None:
 
     with progress, metadata:
         if not save_dir.joinpath(defaultTitle).exists():
-            print(f"Downloading resolution {video_stream.resolution} for {defaultTitle}")
+            print(f"+ Downloading resolution {video_stream.resolution} for {defaultTitle}")
             if not ffmpeg_available:
                 progress.custom_add_task(
                     title=video_stream.title,
@@ -148,7 +148,7 @@ def get_video_srt(url: str, save_dir: Path, **kwargs: Any) -> None:
             with save_dir.joinpath(get_srt_name(defaultTitle, cap.code)).open("w") as file_handle:
                 file_handle.write(cap.generate_srt_captions())
             progress2.update(task_id, advance=1)
-            print(f"Successfully downloaded {cap.name} caption")
+            progress2.console.print(f"[green]Successfully downloaded {cap.name} caption")
 
 
 if __name__ == "__main__":

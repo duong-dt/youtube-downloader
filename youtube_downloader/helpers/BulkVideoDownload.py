@@ -81,7 +81,7 @@ def download_wffmpeg(videos: Iterable[str], save_dir: Path, **kwargs: Any) -> No
         )
         audio_stream, video_stream, defaultTitle = init_one_ffmpeg(url, **kwargs)
         if not save_dir.joinpath(defaultTitle).exists():
-            print(f"Downloading resolution {video_stream.resolution} for {defaultTitle}")
+            print(f"+ Downloading resolution {video_stream.resolution} for {defaultTitle}")
             progress.update(
                 task_id,
                 description=defaultTitle,

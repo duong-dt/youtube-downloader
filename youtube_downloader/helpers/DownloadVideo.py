@@ -105,7 +105,7 @@ def get_video(url: str, save_dir: Path, **kwargs: Any) -> None:
         if not check_ffmpeg():
             stream, defaultTitle = initialize(url, **kwargs)
             if not save_dir.joinpath(defaultTitle).exists():
-                print(f"Downloading resolution {stream.resolution} for {defaultTitle}")
+                print(f"+ Downloading resolution {stream.resolution} for {defaultTitle}")
                 progress.start_task(task_id)
                 progress.update(
                     task_id,
@@ -119,7 +119,7 @@ def get_video(url: str, save_dir: Path, **kwargs: Any) -> None:
         else:
             audio_stream, video_stream, defaultTitle = initialize_wffmpeg(url, **kwargs)
             if not save_dir.joinpath(defaultTitle).exists():
-                print(f"Downloading resolution {video_stream.resolution} for {defaultTitle}")
+                print(f"+ Downloading resolution {video_stream.resolution} for {defaultTitle}")
                 progress.start_task(task_id)
                 progress.update(
                     task_id,

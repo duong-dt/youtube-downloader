@@ -122,7 +122,9 @@ def complete(stream: Stream, filepath: str) -> None:
     with progress._lock:
         if progress._tasks[task_id].finished:
             if file.stem not in ["ain", "vin"]:
-                print(f"Successfully downloaded {file.name} ")
+                progress.console.print(
+                    f"[green]Successfully downloaded [/green][purple]{file.name} "
+                )
             progress.remove_task(task_id)
 
 
@@ -181,7 +183,7 @@ def check_ffmpeg() -> bool:
         )
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
-        print("ffmpeg is not available", file=sys.stderr)
+        progress.console.print("[yellow]ffmpeg is not available", file=sys.stderr)
         return False
 
 
@@ -204,7 +206,7 @@ def ffmpeg_merge(audio: Path, video: Path, out: Path) -> bool:
         # fmt: on
         return True
     except subprocess.CalledProcessError as e:
-        print(f"ffmpeg convert failed for {out.name}", file=sys.stderr)
+        progress.console.print(f"[red]ffmpeg convert failed for {out.name}", file=sys.stderr)
         print(f"{e.output}", file=sys.stderr)
         return False
 
@@ -220,7 +222,7 @@ def download_video_wffmpeg(
         download(video_stream, Path(tmpdir), video_file.name, **kwargs)
 
         if ffmpeg_merge(audio_file, video_file, save_dir / filename):
-            print(f"Successfully downloaded {filename}")
+            progress.console.print(f"[green]Successfully downloaded [/green][purple]{filename}")
 
 
 def wait(sec: float) -> None:
