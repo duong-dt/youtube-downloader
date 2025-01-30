@@ -14,6 +14,7 @@ from youtube_downloader.helpers.DownloadVideo import (
     initialize_wffmpeg as init_one_ffmpeg,
 )
 from youtube_downloader.helpers.util import (
+    NO_WORKER,
     _error,
     check_ffmpeg,
     getDefaultTitle,
@@ -64,7 +65,7 @@ def download(urls: Iterable[str], save_dir: Path, **kwargs: Any) -> None:
         download_one(stream, save_dir, defaultTitle, **kwargs)
 
     with progress:
-        with ThreadPoolExecutor(max_workers=4) as pool:
+        with ThreadPoolExecutor(max_workers=NO_WORKER) as pool:
             for url in urls:
                 pool.submit(run, url, **kwargs)
                 wait(0.5)
@@ -80,7 +81,7 @@ def download_wffmpeg(videos: Iterable[str], save_dir: Path, **kwargs: Any) -> No
         )
         audio_stream, video_stream, defaultTitle = init_one_ffmpeg(url, **kwargs)
         if not save_dir.joinpath(defaultTitle).exists():
-            print(f"Downloading resolution {video_stream.resolution} for {defaultTitle}")
+            print(f"+ Downloading resolution {video_stream.resolution} for {defaultTitle}")
             progress.update(
                 task_id,
                 description=defaultTitle,
@@ -94,7 +95,7 @@ def download_wffmpeg(videos: Iterable[str], save_dir: Path, **kwargs: Any) -> No
             progress.remove_task(task_id)
 
     with progress:
-        with ThreadPoolExecutor(max_workers=4) as pool:
+        with ThreadPoolExecutor(max_workers=NO_WORKER) as pool:
             for video in videos:
                 pool.submit(run, video, **kwargs)
                 wait(0.5)
