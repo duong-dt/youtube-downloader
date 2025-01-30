@@ -84,6 +84,10 @@ Using `pip`: `pip install --upgrade pytubefix`.
 
 Or using `uv`: `uv install --upgrade --reinstall youtube-downloader-cli`. 
 
+---
+
+When downloading from a playlist (Option 4 & 5), videos/audios will be downloaded in parallel. Maximum number of parallel downloads could be set via environment variable `YTDL_WORKERS` (default is 4). 
+
 # Dependencies
 1. For CLI Application
    * pyperclip
