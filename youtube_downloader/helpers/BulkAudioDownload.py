@@ -8,7 +8,14 @@ from pytubefix import Playlist
 from pytubefix.exceptions import PytubeFixError as PytubeError
 
 from youtube_downloader.helpers.DownloadAudio import initialize as init_one
-from youtube_downloader.helpers.util import _error, getDefaultTitle, metadata, progress, wait
+from youtube_downloader.helpers.util import (
+    NO_WORKER,
+    _error,
+    getDefaultTitle,
+    metadata,
+    progress,
+    wait,
+)
 from youtube_downloader.helpers.util import download as download_one
 
 global _ATTEMPTS
@@ -46,7 +53,7 @@ def download(urls: Iterable[str], save_dir: Path, **kwargs: Any) -> None:
         download_one(stream, save_dir, defaultTitle, **kwargs)
 
     with progress:
-        with ThreadPoolExecutor(max_workers=4) as pool:
+        with ThreadPoolExecutor(max_workers=NO_WORKER) as pool:
             for url in urls:
                 pool.submit(run, url, **kwargs)
                 wait(0.5)

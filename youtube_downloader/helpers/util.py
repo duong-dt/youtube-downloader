@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import unicodedata
 from pathlib import Path
@@ -23,6 +24,10 @@ from rich.progress import (
 from rich.table import Column
 
 APPDATA = Path("~/.local/share/youtube-downloader-cli/").expanduser()
+try:
+    NO_WORKER = int(os.environ.get("YTDL_WORKERS", 4))
+except ValueError:
+    NO_WORKER = 4
 
 
 class CustomProgress(Progress):
