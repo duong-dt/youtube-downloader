@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import sys
 import unicodedata
 from pathlib import Path
@@ -7,8 +8,10 @@ from tempfile import TemporaryDirectory
 from time import sleep
 from typing import Any
 
+from click import ClickException
 from pytubefix import Playlist, Stream, YouTube
-from rich.console import Console
+from rich.console import Console, Group
+from rich.panel import Panel
 from rich.progress import (
     BarColumn,
     FileSizeColumn,
@@ -22,6 +25,7 @@ from rich.progress import (
     TotalFileSizeColumn,
 )
 from rich.table import Column
+from rich.text import Text
 
 APPDATA = Path("~/.local/share/youtube-downloader-cli/").expanduser()
 try:
@@ -110,7 +114,6 @@ progress2: Progress = Progress(
 
 def progress_update(stream: Stream, chunk: bytes, bytes_remaining: int) -> None:
     global progress
-    # on_progress(stream, chunk, bytes_remaining)
     task_id = progress.task_ids_mapping.get(stream.title)
     progress.update(task_id, advance=len(chunk))
 
@@ -133,8 +136,7 @@ def download(stream: Stream, save_dir: Path, filename: str, **kwargs: Any) -> No
 
 
 def _error(_exception: Exception) -> None:
-    print(f"{type(_exception).__name__} : {_exception}")
-    sys.exit(1)
+    raise ClickException(f"{type(_exception).__name__} : {_exception}")
 
 
 def getDefaultTitle(y: YouTube | Stream | Playlist, subtype: str = "mp4") -> str:
@@ -173,8 +175,6 @@ def check_ffmpeg() -> bool:
     return True if ffmpeg is present, False otherwise
     """
 
-    import subprocess
-
     try:
         subprocess.check_call(
             ["ffmpeg", "-version"],
@@ -188,8 +188,6 @@ def check_ffmpeg() -> bool:
 
 
 def ffmpeg_merge(audio: Path, video: Path, out: Path) -> bool:
-    import subprocess
-
     try:
         # fmt: off
         subprocess.check_output(
@@ -206,8 +204,18 @@ def ffmpeg_merge(audio: Path, video: Path, out: Path) -> bool:
         # fmt: on
         return True
     except subprocess.CalledProcessError as e:
-        progress.console.print(f"[red]ffmpeg convert failed for {out.name}", file=sys.stderr)
-        print(f"{e.output}", file=sys.stderr)
+        panel = Panel(
+            Group(
+                Text.assemble(("failed to merge ", "default"), (out.name, "purple")),
+                Panel(
+                    e.output.decode().strip(), title="[red]error", title_align="left", border_style="red"
+                ),
+            ),
+            title="[red]error using ffmpeg",
+            title_align="left",
+            border_style="red",
+        )
+        progress.console.print(panel)
         return False
 
 

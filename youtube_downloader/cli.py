@@ -139,7 +139,8 @@ HelpTheme = Theme(
         "repr.tag_name": "default",
         "rule.line": "bold yellow",
         "markdown.hr": "bold yellow",
-        "markdown.h4": "reverse",
+        "markdown.h2": "reverse",
+        "markdown.h3": "underline"
     }
 )
 
