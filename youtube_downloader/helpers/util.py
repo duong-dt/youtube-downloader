@@ -208,7 +208,10 @@ def ffmpeg_merge(audio: Path, video: Path, out: Path) -> bool:
             Group(
                 Text.assemble(("failed to merge ", "default"), (out.name, "purple")),
                 Panel(
-                    e.output.decode().strip(), title="[red]error", title_align="left", border_style="red"
+                    e.output.decode().strip(),
+                    title="[red]error",
+                    title_align="left",
+                    border_style="red",
                 ),
             ),
             title="[red]error using ffmpeg",
