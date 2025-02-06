@@ -87,7 +87,7 @@ def initialize_wffmpeg(url: str, **kwargs: Any) -> tuple[Stream, Stream, str]:
 
 def _init_ffmpeg(yt: YouTube, **kwargs: Any) -> tuple[Stream, Stream, str]:
     audio_stream = yt.streams.get_audio_only()
-    video_stream = get_resolution_upto(yt.streams.filter(only_video=True), **kwargs)
+    video_stream = get_resolution_upto(yt.streams.filter(only_video=True, subtype="mp4"), **kwargs)
     defaultTitle = getDefaultTitle(yt, video_stream.subtype)
 
     return audio_stream, video_stream, defaultTitle
