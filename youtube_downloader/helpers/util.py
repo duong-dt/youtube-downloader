@@ -278,7 +278,7 @@ class YouTubeMetadataCache:
             self._load()
         self._json[url] = {}
         self._json[url]["title"] = title
-        if not self._titles:
+        if not hasattr(self, "_titles"):
             self._titles = {}
         self._titles[url] = title
 
