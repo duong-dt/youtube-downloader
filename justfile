@@ -16,9 +16,14 @@ run *ARGS:
 	uv run {{CMD}} {{ARGS}}
 
 # Run linter and formatter
-format: 
+format:
 	uvx ruff check --fix
 	uvx ruff format
+
+[private]
+static-check:
+	uvx ruff check
+	uvx ruff format --check
 
 # Clean & Build the package
 [group('build')]
@@ -26,7 +31,7 @@ rebuild: clean build
 
 # Build the package
 [group('build')]
-build: format build-uv
+build: build-uv
 
 [private]
 build-uv:
@@ -55,7 +60,7 @@ clean:
 
 # Upload package to TestPyPI (target=test) or PyPI (target=PyPI)
 [group('pypi')]
-upload target: rebuild
+upload target: static-check rebuild
 	#!/usr/bin/bash
 	if [[ {{target}} == "test" ]]; then
 		set -x ; uvx uv-publish --repository testpypi
