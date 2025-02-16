@@ -94,7 +94,6 @@ bump *ARGS:
 make-testing: rebuild
   #!/usr/bin/bash
   source $(which virtualenvwrapper.sh)
-  VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
   echo mkvirtualenv -i {{WHL}} --clear yt-dl-cli-testing 
   mkvirtualenv -i {{WHL}} --clear yt-dl-cli-testing
 
@@ -103,7 +102,6 @@ make-testing: rebuild
 remove-testing:
   #!/usr/bin/bash
   source $(which virtualenvwrapper.sh)
-  VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
   echo rmvirtualenv yt-dl-cli-testing
   rmvirtualenv yt-dl-cli-testing
 
