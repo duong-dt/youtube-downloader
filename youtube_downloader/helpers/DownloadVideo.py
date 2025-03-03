@@ -44,7 +44,7 @@ def get_resolution_upto(streams: StreamQuery, max_res: int = 1080) -> Stream:
     return sorted(
         filter(
             lambda s: (int(s.resolution[:-1]) <= max_res) or (max_res < 0),
-            streams.filter(only_video=True),
+            streams,
         ),
         key=lambda s: int(s.resolution[:-1]),
     )[-1]

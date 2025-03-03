@@ -1,7 +1,6 @@
 import json
 import os
 import subprocess
-import sys
 import unicodedata
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -186,7 +185,7 @@ def check_ffmpeg() -> bool:
         )
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
-        progress.console.print("[yellow]ffmpeg is not available", file=sys.stderr)
+        progress.console.print("[yellow]ffmpeg is not available")
         return False
 
 
