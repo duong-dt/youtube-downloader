@@ -1,7 +1,6 @@
 import json
 import os
 import subprocess
-import sys
 import unicodedata
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -28,7 +27,9 @@ from rich.table import Column
 from rich.text import Text
 
 APPDATA = Path("~/.local/share/youtube-downloader-cli/").expanduser()
+# TODO: change NO_WORKER to a function to only evaluate on demand
 try:
+    # TODO: separte into more steps and add logging
     NO_WORKER = int(os.environ.get("YTDL_WORKERS", 4))
 except ValueError:
     NO_WORKER = 4
@@ -135,7 +136,7 @@ def download(stream: Stream, save_dir: Path, filename: str, **kwargs: Any) -> No
     stream.download(filename=filename, output_path=save_dir)
 
 
-def _error(_exception: Exception) -> None:
+def error_exit(_exception: Exception) -> None:
     raise ClickException(f"{type(_exception).__name__} : {_exception}")
 
 
@@ -145,6 +146,7 @@ def getDefaultTitle(y: YouTube | Stream | Playlist, subtype: str = "mp4") -> str
     from YouTube video title
     """
 
+    # TODO: add logging
     if isinstance(y, Playlist):
         return f"Playlist {y.title}"
 
@@ -183,7 +185,7 @@ def check_ffmpeg() -> bool:
         )
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
-        progress.console.print("[yellow]ffmpeg is not available", file=sys.stderr)
+        progress.console.print("[yellow]ffmpeg is not available")
         return False
 
 
@@ -280,6 +282,7 @@ class YouTubeMetadataCache:
         self._json[url]["title"] = title
         if not hasattr(self, "_titles"):
             self._titles = {}
+        # TODO: add logging
         self._titles[url] = title
 
     def _store(self) -> None:

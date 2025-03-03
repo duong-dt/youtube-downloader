@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 
 from pytubefix import Playlist
 from pytubefix.exceptions import PytubeFixError as PytubeError
@@ -10,7 +10,7 @@ from pytubefix.exceptions import PytubeFixError as PytubeError
 from youtube_downloader.helpers.DownloadAudio import initialize as init_one
 from youtube_downloader.helpers.util import (
     NO_WORKER,
-    _error,
+    error_exit,
     getDefaultTitle,
     metadata,
     progress,
@@ -18,25 +18,20 @@ from youtube_downloader.helpers.util import (
 )
 from youtube_downloader.helpers.util import download as download_one
 
-global _ATTEMPTS
-_ATTEMPTS = 1
-
 
 def initialize(url: str) -> Iterable[str]:
-    global _ATTEMPTS
     try:
         playlist = Playlist(url, client="WEB")
+        # TODO: add logging
         metadata.add_title(url, Path(getDefaultTitle(playlist)).stem)
         return playlist.video_urls
-    except URLError:
-        if _ATTEMPTS < 4:
-            print("Connection Error !!! Trying again ... ")
-            _ATTEMPTS += 1
-            return initialize(url)
-        else:
-            _error(Exception("Cannot connect to Youtube !!!"))
+    except (URLError, HTTPError) as err:
+        progress.console.print(
+            "error connecting to YouTube. possible problem: [yellow]invalid url[/yellow] or [yellow]internet connection[/yellow]"
+        )
+        error_exit(err)
     except PytubeError as err:
-        _error(err)
+        error_exit(err)
 
 
 def download(urls: Iterable[str], save_dir: Path, **kwargs: Any) -> None:

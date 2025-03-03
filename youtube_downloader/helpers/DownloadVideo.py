@@ -1,28 +1,24 @@
 from pathlib import Path
 from typing import Any
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 
 from pytubefix import Stream, StreamQuery, YouTube
 from pytubefix.exceptions import PytubeFixError as PytubeError
 
 from youtube_downloader.helpers.util import (
-    _error,
     check_ffmpeg,
     complete,
     download,
     download_video_wffmpeg,
+    error_exit,
     getDefaultTitle,
     metadata,
     progress,
     progress_update,
 )
 
-global _ATTEMPTS
-_ATTEMPTS = 1
-
 
 def initialize(url: str, **kwargs: Any) -> tuple[Stream, str]:
-    global _ATTEMPTS
     try:
         yt = YouTube(
             url=url,
@@ -35,22 +31,20 @@ def initialize(url: str, **kwargs: Any) -> tuple[Stream, str]:
         metadata.add_title(url, Path(defaultTitle).stem)
 
         return stream, defaultTitle
-    except URLError:
-        if _ATTEMPTS < 4:
-            print("\nConnection Error !!! Trying again ... ")
-            _ATTEMPTS += 1
-            return initialize(url)
-        else:
-            _error(Exception("Cannot connect to Youtube !!!"))
+    except (URLError, HTTPError) as err:
+        progress.console.print(
+            "error connecting to YouTube. possible problem: [yellow]invalid url[/yellow] or [yellow]internet connection[/yellow]"
+        )
+        error_exit(err)
     except PytubeError as err:
-        _error(err)
+        error_exit(err)
 
 
 def get_resolution_upto(streams: StreamQuery, max_res: int = 1080) -> Stream:
     return sorted(
         filter(
             lambda s: (int(s.resolution[:-1]) <= max_res) or (max_res < 0),
-            streams.filter(only_video=True),
+            streams,
         ),
         key=lambda s: int(s.resolution[:-1]),
     )[-1]
@@ -61,7 +55,6 @@ def initialize_wffmpeg(url: str, **kwargs: Any) -> tuple[Stream, Stream, str]:
     With ffmpeg available, get audio & stream separately.
     return AudioStream, VideoStream, DefaultTitle
     """
-    global _ATTEMPTS
     try:
         yt = YouTube(
             url=url,
@@ -74,15 +67,13 @@ def initialize_wffmpeg(url: str, **kwargs: Any) -> tuple[Stream, Stream, str]:
         metadata.add_title(url, Path(defaultTitle).stem)
 
         return audio_stream, video_stream, defaultTitle
-    except URLError:
-        if _ATTEMPTS < 4:
-            print("\nConnection Error !!! Trying again ... ")
-            _ATTEMPTS += 1
-            return initialize_wffmpeg(url)
-        else:
-            _error(Exception("Cannot connect to Youtube !!!"))
+    except (URLError, HTTPError) as err:
+        progress.console.print(
+            "error connecting to YouTube. possible problem: [yellow]invalid url[/yellow] or [yellow]internet connection[/yellow]"
+        )
+        error_exit(err)
     except PytubeError as err:
-        _error(err)
+        error_exit(err)
 
 
 def _init_ffmpeg(yt: YouTube, **kwargs: Any) -> tuple[Stream, Stream, str]:
