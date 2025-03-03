@@ -1,12 +1,12 @@
 from pathlib import Path
 from typing import Any
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 
 from pytubefix import Stream, YouTube
 from pytubefix.exceptions import PytubeFixError as PytubeError
 
 from youtube_downloader.helpers.util import (
-    _error,
+    error_exit,
     complete,
     download,
     getDefaultTitle,
@@ -15,12 +15,8 @@ from youtube_downloader.helpers.util import (
     progress_update,
 )
 
-global _ATTEMPTS
-_ATTEMPTS = 1
-
 
 def initialize(url: str, **kwargs: Any) -> tuple[Stream, str]:
-    global _ATTEMPTS
     try:
         yt = YouTube(
             url=url,
@@ -35,15 +31,13 @@ def initialize(url: str, **kwargs: Any) -> tuple[Stream, str]:
         metadata.add_title(url, Path(defaultTitle).stem)
 
         return stream, defaultTitle
-    except URLError:
-        if _ATTEMPTS < 4:
-            print("\nConnection Error !!! Trying again ... ")
-            _ATTEMPTS += 1
-            return initialize(url)
-        else:
-            _error(Exception("Cannot connect to Youtube !!!"))
+    except (URLError, HTTPError) as err:
+        progress.console.print(
+            "error connecting to YouTube. possible problem: [yellow]invalid url[/yellow] or [yellow]internet connection[/yellow]"
+        )
+        error_exit(err)
     except PytubeError as err:
-        _error(err)
+        error_exit(err)
 
 
 def get_audio(url: str, save_dir: Path, **kwargs: Any) -> None:

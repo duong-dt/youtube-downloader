@@ -20,6 +20,7 @@ from youtube_downloader import __version__, scriptDir
 from youtube_downloader.helpers import (
     APPDATA,
     YouTubeMetadataCache,
+    error_exit,
     get_audio,
     get_audios,
     get_video,
@@ -289,7 +290,10 @@ def main(ctx: click.Context, version: bool, manual: bool) -> None:
         # If downloading audio
         max_res = -1
 
-    main_opts.get(opt)(url, save_dir, max_res=max_res)
+    try:
+        main_opts.get(opt)(url, save_dir, max_res=max_res)
+    except Exception as e:
+        error_exit(e)
 
 
 if __name__ == "__main__":

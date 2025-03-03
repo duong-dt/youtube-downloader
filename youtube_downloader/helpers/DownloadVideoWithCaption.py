@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 
 import questionary
 from pytubefix import Caption, CaptionQuery, Stream, YouTube
@@ -9,11 +9,11 @@ from pytubefix.exceptions import PytubeFixError as PytubeError
 
 from youtube_downloader.helpers.DownloadVideo import _init_ffmpeg, get_resolution_upto
 from youtube_downloader.helpers.util import (
-    _error,
     check_ffmpeg,
     complete,
     download,
     download_video_wffmpeg,
+    error_exit,
     getDefaultTitle,
     metadata,
     progress,
@@ -21,13 +21,11 @@ from youtube_downloader.helpers.util import (
     progress_update,
 )
 
-global _ATTEMPTS
-_ATTEMPTS = 1
-
 
 def select_captions(captions: CaptionQuery) -> Iterable[Caption] | None:
     selected_captions = []
     if len(captions) == 0:
+        # TODO: add logging
         print("No caption available")
     elif len(captions) > 1:
         max_code_len = max(map(len, captions.lang_code_index.keys()))
@@ -46,12 +44,12 @@ def select_captions(captions: CaptionQuery) -> Iterable[Caption] | None:
             code = choice.split("----", 1)[0].strip()
             selected_captions.append(captions.get(code))
     else:
+        # TODO: add logging
         selected_captions = captions
     return selected_captions
 
 
 def initialize(url: str, **kwargs: Any) -> tuple[Stream, Iterable[Caption] | None, str]:
-    global _ATTEMPTS
     try:
         yt = YouTube(
             url=url,
@@ -62,24 +60,22 @@ def initialize(url: str, **kwargs: Any) -> tuple[Stream, Iterable[Caption] | Non
         stream = get_resolution_upto(yt.streams.filter(progressive=True), **kwargs)
         defaultTitle = getDefaultTitle(yt, subtype=stream.subtype)
         metadata.add_title(url, Path(defaultTitle).stem)
+        # TODO: move before other stream to not impact logging
         captions = select_captions(yt.captions)
 
         return stream, captions, defaultTitle
-    except URLError:
-        if _ATTEMPTS < 4:
-            print("\nConnection Error !!! Trying again ... ")
-            _ATTEMPTS += 1
-            return initialize(url)
-        else:
-            _error(Exception("Cannot connect to Youtube !!!"))
+    except (URLError, HTTPError) as err:
+        progress.console.print(
+            "error connecting to YouTube. possible problem: [yellow]invalid url[/yellow] or [yellow]internet connection[/yellow]"
+        )
+        error_exit(err)
     except PytubeError as err:
-        _error(err)
+        error_exit(err)
 
 
 def initialize_wffmpeg(
     url: str, **kwargs: Any
 ) -> tuple[Stream, Stream, Iterable[Caption] | None, str]:
-    global _ATTEMPTS
     try:
         yt = YouTube(
             url=url,
@@ -92,15 +88,13 @@ def initialize_wffmpeg(
         captions = select_captions(yt.captions)
 
         return audio_stream, video_stream, captions, defaultTitle
-    except URLError:
-        if _ATTEMPTS < 4:
-            print("\nConnection Error !!! Trying again ... ")
-            _ATTEMPTS += 1
-            return initialize(url)
-        else:
-            _error(Exception("Cannot connect to Youtube !!!"))
+    except (URLError, HTTPError) as err:
+        progress.console.print(
+            "error connecting to YouTube. possible problem: [yellow]invalid url[/yellow] or [yellow]internet connection[/yellow]"
+        )
+        error_exit(err)
     except PytubeError as err:
-        _error(err)
+        error_exit(err)
 
 
 def get_srt_name(fname: str, code: str) -> str:
