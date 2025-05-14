@@ -6,9 +6,9 @@ from pytubefix import Stream, YouTube
 from pytubefix.exceptions import PytubeFixError as PytubeError
 
 from youtube_downloader.helpers.util import (
-    error_exit,
     complete,
     download,
+    error_exit,
     getDefaultTitle,
     metadata,
     progress,

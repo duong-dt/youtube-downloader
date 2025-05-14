@@ -21,5 +21,5 @@ __all__ = [
     "get_video_srt",
     "get_videos",
     "metadata",
-    "progress"
+    "progress",
 ]
